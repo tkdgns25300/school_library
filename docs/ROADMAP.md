@@ -1,84 +1,88 @@
 # School Library — 작업 로드맵
 
-> 브랜치: `main` / `dev` 2개. 작업은 `dev`에서. commit·push·merge는 사용자 명시 요청 시에만.
+> 페이지·기능 명세는 [`SPEC.md`](./SPEC.md), DB는 [`SCHEMA.md`](./SCHEMA.md).
+> 브랜치: `main` / `dev`. 작업은 dev에서. commit·push·merge는 사용자 명시 요청 시에만.
 
 ## Phase 0: 프로젝트 준비
 
 - [x] GitHub repo 생성 + clone
-- [x] CLAUDE.md, docs/SPEC.md, docs/SCHEMA.md, docs/ROADMAP.md 작성
-- [x] README.md, .gitignore, .env.example 작성
-- [ ] `dev` 브랜치 생성 + 작업 시작
-- [ ] Next.js App Router + TypeScript strict + Tailwind 셋업
-- [ ] shadcn/ui 초기화 (Button, Input, Form, Table, Dialog, DatePicker, Combobox 등)
-- [ ] 라이브러리 설치: `bwip-js`, `papaparse`(CSV), `pdf-lib` 또는 `@react-pdf/renderer`
-- [ ] Supabase 프로젝트 생성
-- [ ] 마이그레이션 SQL 작성 (`supabase/migrations/001_init.sql`)
-  - [ ] `teachers`, `students`, `books`, `loans` 테이블 + CHECK 제약
-  - [ ] `book_id_seq` 시퀀스 + `generate_book_id()` 함수
-  - [ ] 인덱스 (printed, active loan, overdue, student/class)
-  - [ ] RLS 정책 (authenticated 전체 허용)
-- [ ] Supabase 클라이언트 설정 (`src/lib/supabase/{client,server}.ts`)
-- [ ] 환경변수 설정 (`.env.local`)
-- [ ] 관리자 계정 1개 Supabase 대시보드에서 생성
+- [x] CLAUDE.md, docs/* 작성
+- [x] README.md, .gitignore, .env.example
+- [x] `dev` 브랜치 생성, dev에서 작업
+- [x] Next.js 16 + React 19 + Tailwind v4 + TypeScript strict 셋업
+- [x] shadcn/ui (base-nova / Base UI / neutral) + 컴포넌트 22개
+- [x] 라이브러리: `bwip-js`, `papaparse`, `pdf-lib`, `@types/papaparse`
+- [ ] Supabase 프로젝트 생성 (대시보드)
+- [ ] 마이그레이션 SQL (`supabase/migrations/001_init.sql`) — 4테이블 + 시퀀스 + 인덱스 + RLS
+- [ ] Supabase 클라이언트 (`src/lib/supabase/{client,server}.ts`)
+- [ ] `.env.local` 채우기
+- [ ] 관리자 계정 생성 (Supabase 대시보드)
 - [ ] 로그인 페이지 + 인증 미들웨어
 - [ ] Vercel 연동
 
-## Phase 1: MVP
+## Phase 1: MVP — 5페이지
 
-> 목표: 교사가 로그인해서 학생/책을 등록하고, 라벨을 인쇄하고, 대여·반납을 처리하고, 반별로 대여·연체를 모니터링한다.
+> 각 페이지의 동작은 SPEC.md 1-N 참조. 여기는 작업 단위 체크리스트.
 
-### 공통
-- [ ] 사이드바 네비 (대시보드 / 교사 / 학생 / 책 / 대여·반납 / 모니터링)
+### 1-1. 공통 골격
+
+- [ ] 사이드바 네비게이션 (5페이지)
 - [ ] 헤더 (로그아웃)
+- [ ] 도메인 타입 정의 (`src/types/domain.ts`)
+- [ ] 정렬 헬퍼 (`src/lib/sort/`) — SPEC 정렬 규칙 표 구현
+- [ ] 컬러 토큰 (한국어=남색, 영어=초록) 상수화
 
-### 교사 관리
-- [ ] 교사 목록 + 추가/수정/삭제
-- [ ] 교사 CSV 업로드
+### 1-2. 학생 명단 (SPEC: 학생 명단)
 
-### 학생 관리
-- [ ] 학생 목록 (이름 검색, 학년·반 필터)
-- [ ] 학생 추가/수정/삭제 (학년·반 조합 검증)
-- [ ] 학생 CSV 업로드 + 검증 리포트
+- [ ] 목록 페이지 (정렬·검색·필터)
+- [ ] 추가/수정/삭제 UI
+- [ ] CSV 업로드 + 검증 리포트
 
-### 책 관리
-- [ ] 책 목록 (제목/저자 검색, 학년/미인쇄/대여중 필터)
-- [ ] 책 추가 (자동 ID + 바코드 미리보기)
-- [ ] 책 수정/삭제 (활성 대여 있으면 삭제 차단)
-- [ ] 책 CSV 업로드 + 검증 리포트
-- [ ] 바코드 라벨 PDF 출력 (미인쇄 책 일괄 → 인쇄 후 `printed=true` 일괄 처리)
+### 1-3. 교사 명단 (SPEC: 교사 명단)
 
-### 대여·반납
-- [ ] `/checkout` 페이지
-- [ ] 모드 선택 (대여 / 반납)
-- [ ] 담당자(교사) 선택
-- [ ] 대여 모드: 학생 선택 + 반납 예정일
-- [ ] 반납 모드: 학생 선택 불필요
-- [ ] 바코드 입력 자동 포커스, Enter 감지, 연속 스캔
-- [ ] 활성 대여 없는 책 반납 시도 → 경고
-- [ ] 이미 대여 중인 책 대여 시도 → 경고
+- [ ] 목록 페이지
+- [ ] 추가/수정/삭제 UI
+- [ ] CSV 업로드
 
-### 모니터링
-- [ ] **반별 뷰**: 반 클릭 → 학생 목록 → 학생별 (대여 권수, 연체 권수)
-- [ ] **연체 도서 리스트**: 연체일 정렬, 학생·반·담당자 표시
-- [ ] **현재 대여 중 도서 리스트**: 검색·필터
+### 1-4. 책 목록 (SPEC: 책 목록)
+
+- [ ] 한/영 탭 + 표지 썸네일 + 큰 미리보기
+- [ ] 필터·검색 (학년, 언어, 단계/레벨)
+- [ ] 추가 폼 (자동 ID + 바코드 미리보기)
+- [ ] 수정/삭제 UI
+- [ ] CSV 업로드 (바코드 자동 발급)
+- [ ] 다중 선택 → A4 라벨 PDF 출력
+
+### 1-5. 운영 (SPEC: 운영)
+
+- [ ] 반 선택 화면 (카드 3개)
+- [ ] 반별 운영 화면 — 한·영 1:1 두 칼럼
+  - [ ] 헤더 (권수·연체)
+  - [ ] 대여/반납 모드 토글
+  - [ ] 학생 + 반납 예정일 + 담당 교사 선택
+  - [ ] 바코드 입력 (자동 포커스, 연속 스캔)
+  - [ ] 책 표지 즉시 미리보기
+  - [ ] 잘못된 칸 안내 토스트
+  - [ ] 대여 중 리스트 (연체 먼저 → 학년 ↑)
+- [ ] 활성 대여 없는 책 반납 시도 / 이미 대여 중인 책 대여 시도 경고
+
+### 1-6. 전체 통계 (SPEC: 전체 통계)
+
+- [ ] 반별 뷰 + 전체 뷰 (탭)
+- [ ] 한·영 구분 표시
+- [ ] 학생 정렬 (연체 먼저 → 학년 ↑)
 
 ## Phase 2: 운영 편의
 
-- [ ] 대시보드 (오늘 대여/반납 수, 연체 카운트, 미인쇄 책 수, 최근 활동)
-- [ ] 인기 도서 Top N, 학년별 대여 빈도 (추세 통계)
-- [ ] 학년 진급 일괄 처리 (1→2 등)
-- [ ] 6학년 졸업 처리
-- [ ] 책 일괄 작업 (학년 변경, 일괄 삭제)
+- [ ] 대시보드 요약 (오늘 대여/반납 수, 연체 수, 미인쇄 책 수 등)
+- [ ] 추세 통계 (인기 도서 Top N, 학년별 대여 빈도)
+- [ ] 학년 진급 일괄 처리 / 6학년 졸업 처리
+- [ ] 책·학생 일괄 작업
 
-## Phase 3: 선택 기능
+## Phase 3: 선택
 
-- [ ] ISBN API (네이버/알라딘) → 책 정보 자동 채우기
+- [ ] ISBN API → 책 정보·표지 자동 채우기
 - [ ] 일괄 반납 (방학·졸업)
-- [ ] CSV 백업/내보내기 (학생/책/대여 이력)
-- [ ] 연체 알림 (이메일 등)
-
-## Git 운영
-
-- 브랜치: `main`(배포), `dev`(작업)
-- 커밋 메시지: 영어, 동사 원형 (Add/Fix/Update/Remove)
-- commit·push·merge는 사용자가 명시적으로 요청할 때만
+- [ ] CSV 백업·내보내기
+- [ ] 연체 알림
+- [ ] 표지 이미지 Supabase Storage 마이그레이션
