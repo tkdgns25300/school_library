@@ -4,8 +4,10 @@
 
 더힘스쿨 수지점(기독교 대안학교, 1~6학년, ~300권)의 도서 대여 관리 웹앱. 기존 "르네상스" 시스템 대체.
 
-- **Stack**: Next.js 14+ (App Router) · TypeScript strict · Tailwind + shadcn/ui · Supabase (Postgres + Auth) · Vercel · npm
+- **Stack**: Next.js 16 (App Router) · React 19 · TypeScript strict · Tailwind v4 + shadcn/ui · Supabase (Postgres + Auth) · Vercel · npm
 - **사용자 모델**: 교사 다수가 사용. 단일 관리자 계정으로 공용 로그인. 대여/반납 시 담당자(교사) 지정.
+
+> ⚠️ **Next.js 16 / React 19**: 학습 데이터와 다를 수 있는 breaking changes 다수. Next.js·React 코드를 작성·수정하기 전에 `node_modules/next/dist/docs/`의 해당 가이드를 먼저 확인할 것 (라우팅, Server Components, Server Actions, 캐싱, 데이터 fetching 등 변경된 영역 주의).
 
 ## Architecture
 
