@@ -18,7 +18,7 @@ Next.js 16 (App Router) · React 19 · TypeScript strict · Tailwind v4 + shadcn
 
 ```bash
 npm install
-cp .env.example .env.local   # Supabase 키 입력
+cp .env.example .env         # Supabase 키 입력
 npm run dev
 ```
 
