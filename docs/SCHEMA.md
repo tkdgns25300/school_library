@@ -130,10 +130,16 @@ The Cat in the Hat,Dr. Seuss,Random House,2,en,Level 1,https://...
 
 업로드 시 행별 검증, 정상 행만 INSERT, 실패 행은 사유와 함께 리포트.
 
-## 표지 이미지 (cover_image_url)
+## 표지 이미지 (Supabase Storage)
 
-- 1차: **외부 URL** (네이버 책 등에서 제공하는 이미지 주소). 가장 단순.
-- 추후(Phase 2~3): Supabase Storage로 마이그레이션 검토. 외부 링크 만료 위험 대응.
+책 표지 파일은 **Supabase Storage**에 저장하고, `books.cover_image_url`에는 public URL을 기록한다.
+
+- **버킷**: `book-covers` (public 접근)
+- **파일 경로**: `book-covers/{book_id}.{ext}` (예: `book-covers/BK00001.jpg`)
+- **업로드 흐름**: 책 등록·수정 시 파일 업로드 → 반환된 public URL을 `cover_image_url`에 저장. 책 삭제 시 Storage 객체도 함께 정리.
+- **Storage RLS**:
+  - `SELECT`: public (학생도 접근 가능)
+  - `INSERT` / `UPDATE` / `DELETE`: `auth.role() = 'authenticated'` (관리자만)
 
 ## 정렬 쿼리 패턴
 
@@ -149,11 +155,17 @@ ORDER BY grade ASC,
          END,
          name
 
--- 운영/통계의 대여 중 학생: 연체 먼저 → 학년 오름차순 → 이름
+-- 운영 화면 — 대여 중 리스트: 연체 먼저 → 학년 ↑ → 이름
 ORDER BY (CASE WHEN loans.due_date < CURRENT_DATE
                  AND loans.returned_at IS NULL THEN 0 ELSE 1 END),
          students.grade ASC,
          students.name
+
+-- 대여 현황: 연체 먼저 → 학년 ↑ → 반납 예정일 ↑
+ORDER BY (CASE WHEN loans.due_date < CURRENT_DATE
+                 AND loans.returned_at IS NULL THEN 0 ELSE 1 END),
+         students.grade ASC,
+         loans.due_date ASC
 ```
 
 ## 설계 결정

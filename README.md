@@ -9,7 +9,7 @@ Next.js 16 (App Router) · React 19 · TypeScript strict · Tailwind v4 + shadcn
 ## Pages (5)
 
 - `/` 운영 (반 선택 → 한·영 1:1 칼럼, 대여·반납·연속 스캔)
-- `/stats` 전체 통계 (반별 + 전체, 한·영 구분)
+- `/loans` 대여 현황 (회수 우선순위 액션 목록, 한·영 구분)
 - `/students` 학생 명단
 - `/teachers` 교사 명단
 - `/books` 책 목록 (한·영 탭, 표지, 단계/레벨)

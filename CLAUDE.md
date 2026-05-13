@@ -19,7 +19,7 @@ src/
 │   └── ui/       shadcn/ui 컴포넌트
 ├── constants/    상수 (학년 범위, 반 종류, 바코드 prefix 등)
 ├── hooks/        클라이언트 훅 (스캐너 입력 등)
-├── lib/          비즈니스 로직 + Supabase 클라이언트 + barcode/csv/pdf 헬퍼
+├── lib/          비즈니스 로직 + Supabase 클라이언트·스토리지 + barcode/csv/pdf 헬퍼
 └── types/        database.ts (Supabase 생성), domain.ts (도메인 타입)
 
 supabase/migrations/   DB 마이그레이션 SQL
@@ -71,7 +71,11 @@ supabase/migrations/   DB 마이그레이션 SQL
 
 > 자세한 동작·UI 명세는 SPEC.md, DB 컬럼은 SCHEMA.md. 여기는 코드에서 자주 마주치는 상수와 규칙만.
 
-**라우트 (5페이지로 고정)**: `/` 운영 · `/stats` 통계 · `/students` · `/teachers` · `/books`
+**라우트 (5페이지로 고정)**: `/` 운영 · `/loans` 대여 현황 · `/students` · `/teachers` · `/books`
+
+**페이지 역할 분리**:
+- 학생 명단 = 학생 1명당 한 행 (학생 중심 뷰)
+- 대여 현황 = 활성 대여 1건당 한 행 (회수 우선순위 뷰)
 
 **도메인 enum**:
 - `ClassSection`: `'junior 1'` · `'junior 2'` · `'senior 1'`
@@ -82,9 +86,12 @@ supabase/migrations/   DB 마이그레이션 SQL
 
 **전역 정렬** (SPEC의 정렬 규칙 표가 단일 진실):
 - 학생 명단: 학년 ↑ → 반(j1→j2→s1) → 이름
-- 운영·통계: 연체 먼저 → 학년 ↑ → 이름
+- 운영 대여 중 리스트: 연체 먼저 → 학년 ↑ → 이름
+- 대여 현황: 연체 먼저 → 학년 ↑ → 반납 예정일
 
 **바코드**: ID는 `BK00001`~ (PostgreSQL 시퀀스). 발급은 `bwip-js` Code128. 스캔은 키보드 에뮬레이션이라 `<input>` + `onKeyDown(Enter)`로 받는다.
+
+**표지 이미지**: Supabase Storage `book-covers` 버킷(public) 업로드, 반환된 public URL을 `books.cover_image_url`에 저장. 업로드/수정은 인증된 관리자만, 읽기는 public.
 
 **인증**: Supabase Auth 단일 관리자 계정. 회원가입 UI 없음. 미들웨어로 비인증 시 `/login`.
 
