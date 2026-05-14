@@ -1,25 +1,34 @@
 # School Library — 작업 로드맵
 
-> 페이지·기능 명세는 [`SPEC.md`](./SPEC.md), DB는 [`SCHEMA.md`](./SCHEMA.md).
-> 브랜치: `main` / `dev`. 작업은 dev에서. commit·push·merge는 사용자 명시 요청 시에만.
+> 페이지·기능 명세는 [`SPEC.md`](./SPEC.md), DB·Storage는 [`SCHEMA.md`](./SCHEMA.md), 환경·재개 가이드는 [`../README.md`](../README.md).
+> 브랜치: `main`(배포) / `dev`(작업). commit·push·merge는 사용자 명시 요청 시에만.
 
 ## Phase 0: 프로젝트 준비
 
+### 인프라 (완료)
+
 - [x] GitHub repo 생성 + clone
-- [x] CLAUDE.md, docs/* 작성
-- [x] README.md, .gitignore, .env.example
 - [x] `dev` 브랜치 생성, dev에서 작업
+- [x] CLAUDE.md, docs/*, README.md, .gitignore, .env.example
 - [x] Next.js 16 + React 19 + Tailwind v4 + TypeScript strict 셋업
-- [x] shadcn/ui (base-nova / Base UI / neutral) + 컴포넌트 22개
+- [x] shadcn/ui (`base-nova` / Base UI / neutral) + 컴포넌트 22개 + `field`
 - [x] 라이브러리: `bwip-js`, `papaparse`, `pdf-lib`, `@types/papaparse`
-- [ ] Supabase 프로젝트 생성 (대시보드)
-- [ ] 마이그레이션 SQL (`supabase/migrations/001_init.sql`) — 4테이블 + 시퀀스 + 인덱스 + RLS
-- [ ] Supabase Storage 버킷 `book-covers` (public) 생성 + Storage RLS
-- [ ] Supabase 클라이언트 (`src/lib/supabase/{client,server}.ts`) + 스토리지 헬퍼
-- [ ] `.env.local` 채우기
-- [ ] 관리자 계정 생성 (Supabase 대시보드)
-- [ ] 로그인 페이지 + 인증 미들웨어
-- [ ] Vercel 연동
+- [x] Supabase 프로젝트 생성
+- [x] 마이그레이션 `supabase/migrations/001_init.sql` 적용 — 4테이블 + 시퀀스 + 인덱스 + RLS
+- [x] Supabase Storage 버킷 `book-covers` (public read, authenticated write) 생성 + Storage RLS
+- [x] 관리자 계정 생성 (`admin@thehim.school`)
+- [x] `.env` 로컬 셋업 (gitignored — 복원 절차는 README)
+- [x] Vercel 연결 + 첫 배포 (Production = `main`)
+
+### 마무리 (남은 작업)
+
+Phase 1 진입 전제조건. 검증 기준: **로그인 후 빈 운영 페이지(반 카드 3개) 진입까지 동작**.
+
+- [ ] Supabase 클라이언트 — `src/lib/supabase/{client,server}.ts` (`@supabase/ssr`: 브라우저용 / 서버 컴포넌트·Server Actions용 / 미들웨어 세션 갱신 헬퍼)
+- [ ] DB 타입 — `src/types/database.ts` (Supabase MCP 또는 CLI 자동 생성)
+- [ ] 인증 미들웨어 — `src/middleware.ts` (비인증 시 `/login` 리다이렉트, 세션 자동 갱신)
+- [ ] 로그인 페이지 — `src/app/login/page.tsx` (이메일/비밀번호 폼)
+- [ ] 글로벌 레이아웃 — `src/app/layout.tsx` + `src/components/layout/` (사이드바 2그룹 "운영"·"관리" + 접기 토글, 헤더 페이지명·서브타이틀·우측 오늘 날짜, 관리자 계정 박스, 로그아웃)
 
 ## Phase 1: MVP — 5페이지
 
@@ -27,9 +36,6 @@
 
 ### 1-1. 공통 골격
 
-- [ ] 사이드바 — 두 그룹("운영" / "관리"), 접기 토글
-- [ ] 글로벌 헤더 — 페이지명·서브타이틀 + 우측 오늘 날짜
-- [ ] 로그아웃 메뉴
 - [ ] 도메인 타입 (`src/types/domain.ts`)
 - [ ] 정렬 헬퍼 (`src/lib/sort/`) — SPEC 정렬 규칙 표 구현
 - [ ] 컬러 토큰 (한국어=남색, 영어=초록) 상수화
@@ -53,8 +59,8 @@
 - [ ] 한/영 탭 + 권수 표시
 - [ ] 상태 토글 (전체 / 대여 가능 / 대여 중)
 - [ ] 검색·필터 (제목·저자·단계, 단계 드롭다운)
-- [ ] 추가 폼 (자동 ID + 바코드 미리보기 + 표지 파일 업로드)
-- [ ] 수정/삭제 UI
+- [ ] 추가 폼 (자동 ID + 바코드 미리보기 + 표지 파일 업로드 → Storage)
+- [ ] 수정/삭제 UI (삭제 시 Storage 객체 정리)
 - [ ] CSV 업로드 (바코드 자동 발급)
 - [ ] 다중 선택 → A4 라벨 PDF 출력
 
@@ -76,6 +82,7 @@
 - [ ] 검색 (학생·책·바코드) + 언어 토글 + 반 드롭다운
 - [ ] 활성 대여 행 (책 표지 썸네일 + 학년·반·학생·책·언어·반납 예정·상태)
 - [ ] 정렬 (연체 먼저 → 학년 ↑ → 반납 예정일 ↑)
+- [ ] 행 클릭 → 대여 상세 모달 (반납 처리)
 
 ## Phase 2: 운영 편의
 
@@ -88,4 +95,4 @@
 - [ ] ISBN API → 책 정보·표지 자동 채우기
 - [ ] 일괄 반납 (방학·졸업)
 - [ ] CSV 백업·내보내기
-- [ ] 연체 알림
+- [ ] 연체 알림 (대여 상세 모달의 "알림 보내기")

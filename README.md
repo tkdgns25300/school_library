@@ -12,21 +12,70 @@ Next.js 16 (App Router) · React 19 · TypeScript strict · Tailwind v4 + shadcn
 - `/loans` 대여 현황 (회수 우선순위 액션 목록, 한·영 구분)
 - `/students` 학생 명단
 - `/teachers` 교사 명단
-- `/books` 책 목록 (한·영 탭, 표지, 단계/레벨)
+- `/books` 책 목록 (한·영 탭, 표지, 단계/레벨, 라벨 PDF)
+
+## Documentation
+
+읽는 순서:
+
+1. [`CLAUDE.md`](./CLAUDE.md) — **HOW**. 코딩 컨벤션·아키텍처·도메인 룰
+2. [`docs/SPEC.md`](./docs/SPEC.md) — **WHAT**. 페이지·기능 명세
+3. [`docs/SCHEMA.md`](./docs/SCHEMA.md) — **DATA**. DB 스키마·Storage·CSV·SQL 패턴
+4. [`docs/ROADMAP.md`](./docs/ROADMAP.md) — **TODO**. Phase별 체크리스트와 진행 상황
 
 ## Local Setup
 
 ```bash
+git clone https://github.com/tkdgns25300/school_library
+cd school_library
+git checkout dev
 npm install
-cp .env.example .env         # Supabase 키 입력
+cp .env.example .env       # 키 채우기 (아래 '환경 변수' 참조)
+npm run build              # sanity check (Turbopack)
 npm run dev
 ```
 
 관리자 계정은 Supabase 대시보드에서 직접 생성 (회원가입 UI 없음).
 
-## Documentation
+## 환경
 
-- [`CLAUDE.md`](./CLAUDE.md) — 컨벤션 · 아키텍처 · 클린 코드 원칙
-- [`docs/SPEC.md`](./docs/SPEC.md) — 기획서 (학교 구조, 5페이지, 도메인)
-- [`docs/SCHEMA.md`](./docs/SCHEMA.md) — DB 스키마 · RLS · CSV 포맷 · 정렬 쿼리 패턴
-- [`docs/ROADMAP.md`](./docs/ROADMAP.md) — Phase별 작업 체크리스트
+| 항목 | 값 |
+|---|---|
+| Supabase project ref | `lwjzyuxjwdeolmsmmmhi` |
+| Supabase URL | `https://lwjzyuxjwdeolmsmmmhi.supabase.co` |
+| GitHub repo | `https://github.com/tkdgns25300/school_library` |
+| Vercel project | `school_library` (production = `main`) |
+| Admin 계정 | `admin@thehim.school` (비번은 별도 보관) |
+| Storage 버킷 | `book-covers` (public read, authenticated write) |
+
+### 환경 변수
+
+`.env`는 gitignored — repo에 없다. 둘 중 하나로 복원:
+
+- **A. 기존 PC의 `.env` 복사**: 1Password / 패스워드 매니저 / 보안 USB. 이메일·메신저 평문 전송 금지.
+- **B. Supabase Dashboard에서 재생성**: Settings → API에서 키 복사.
+
+필수 키 (`.env.example` 참조):
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://lwjzyuxjwdeolmsmmmhi.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon JWT>
+SUPABASE_SERVICE_ROLE_KEY=<service_role JWT>
+ADMIN_EMAIL=admin@thehim.school
+```
+
+## Supabase MCP (선택)
+
+AI가 DB·Storage를 직접 조작할 수 있게 하는 MCP 서버. 새 PC마다 1회 셋업 권장.
+
+1. **PAT 발급**: https://supabase.com/dashboard/account/tokens → Generate new token → 이름 `school-library-mcp` → 복사
+2. **MCP 서버 등록** (터미널에서):
+   ```bash
+   claude mcp add supabase -s user -- npx -y @supabase/mcp-server-supabase@latest \
+     --project-ref=lwjzyuxjwdeolmsmmmhi \
+     --access-token=YOUR_PAT
+   ```
+   - `YOUR_PAT`만 본인 PAT로 치환
+   - `-s user`: 전역(모든 프로젝트). 이 repo에만 적용하려면 `-s project` → `.mcp.json` 생성
+   - 쓰기 작업이 많으므로 `--read-only`는 **넣지 않는다**
+3. **Claude Code 재시작** 또는 `/mcp`로 로드 → 이후 `mcp__supabase__*` 툴로 SQL·Storage 직접 작업 가능

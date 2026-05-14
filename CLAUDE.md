@@ -1,6 +1,8 @@
 # CLAUDE.md — School Library
 
-> 코드 작성 시 따라야 할 컨벤션과 아키텍처. 도메인·페이지 명세는 [`docs/SPEC.md`](./docs/SPEC.md), DB는 [`docs/SCHEMA.md`](./docs/SCHEMA.md), 작업 진척은 [`docs/ROADMAP.md`](./docs/ROADMAP.md).
+> **이 파일은 HOW** — 코딩 컨벤션·아키텍처·도메인 룰. 페이지 기능은 [`docs/SPEC.md`](./docs/SPEC.md)(WHAT), DB·Storage는 [`docs/SCHEMA.md`](./docs/SCHEMA.md)(DATA), 진행 상황은 [`docs/ROADMAP.md`](./docs/ROADMAP.md)(TODO), 환경·재개 가이드는 [`README.md`](./README.md).
+>
+> **문서 책임 분리** — 같은 사실을 두 곳에 쓰지 않는다. 컨벤션은 여기, 페이지 명세는 SPEC, DB는 SCHEMA, 작업은 ROADMAP, 환경 정보는 README.
 
 ## Project
 
@@ -104,6 +106,11 @@ supabase/migrations/   DB 마이그레이션 SQL
 - 브랜치: `main`(배포) / `dev`(작업). feature 브랜치 X. 작업은 항상 `dev`에서.
 - **commit / push / merge는 사용자가 명시적으로 요청할 때만**. 자동 커밋 금지.
 - 커밋 메시지: 영어, 동사 원형 (Add/Fix/Update/Remove). 1 커밋 = 1 논리적 변경.
+
+## 소통
+
+- 사용자와의 대화는 **한국어**.
+- 커밋 메시지·코드 식별자·주석은 **영어**.
 
 ## Quality Checklist
 
