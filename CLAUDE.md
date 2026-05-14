@@ -30,7 +30,8 @@ supabase/migrations/   DB 마이그레이션 SQL
 **원칙**:
 - 서버 컴포넌트 기본. 클라이언트 컴포넌트는 입력/이벤트가 필수일 때만 (`"use client"` 명시).
 - 데이터 변경은 **Server Actions**. REST API 라우트 남발 금지.
-- DB 접근은 **`lib/supabase`를 통해서만**. 컴포넌트가 직접 `supabase-js` 호출 X.
+- **모든 Supabase 호출은 Next.js Server를 거친다**. 브라우저 클라이언트(`createBrowserClient`) 만들지 않는다. DB 접근은 `lib/supabase/server.ts` 단일 통로.
+- **DB는 데이터 저장 전용**. DB trigger·custom function·복잡한 default expression 만들지 않는다. ID 발급·timestamp 갱신·집계 등 모든 비즈니스 로직은 Server Action / Server Component에서. 내장 기능(`gen_random_uuid()`, sequence `nextval()`, CHECK, FK)만 사용.
 - 폴더·파일명은 영어 kebab-case (`book-card.tsx`, `use-scanner.ts`).
 
 ## Clean Code Principles
@@ -91,11 +92,13 @@ supabase/migrations/   DB 마이그레이션 SQL
 - 운영 대여 중 리스트: 연체 먼저 → 학년 ↑ → 이름
 - 대여 현황: 연체 먼저 → 학년 ↑ → 반납 예정일
 
-**바코드**: ID는 `BK00001`~ (PostgreSQL 시퀀스). 발급은 `bwip-js` Code128. 스캔은 키보드 에뮬레이션이라 `<input>` + `onKeyDown(Enter)`로 받는다.
+**바코드 ID**: `BK00001`~. Server Action이 `nextval('book_id_seq')` 호출 후 `'BK' + lpad(value, 5, '0')`로 조립해 INSERT (DB 컬럼 default 없음).
+
+**바코드 그림·스캔**: `bwip-js` Code128로 라벨 PDF에 렌더링. 스캔은 키보드 에뮬레이션이라 `<input>` + `onKeyDown(Enter)`로 받는다.
 
 **표지 이미지**: Supabase Storage `book-covers` 버킷(public) 업로드, 반환된 public URL을 `books.cover_image_url`에 저장. 업로드/수정은 인증된 관리자만, 읽기는 public.
 
-**인증**: Supabase Auth 단일 관리자 계정. 회원가입 UI 없음. 미들웨어로 비인증 시 `/login`.
+**인증**: Supabase Auth 단일 관리자 계정. 회원가입 UI 없음. **Proxy**(`src/proxy.ts`, Next.js 16에서 `middleware.ts`를 대체)가 비인증 시 `/login`으로 리다이렉트.
 
 **담당자**: 대여·반납 시 `teachers`에서 dropdown 선택 → `loans.handled_by_teacher_id` / `returned_by_teacher_id`에 기록.
 

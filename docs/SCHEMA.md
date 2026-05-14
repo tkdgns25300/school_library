@@ -6,6 +6,8 @@
 
 모든 도메인 데이터(교사, 학생, 책, 대여)를 **Supabase PostgreSQL**에 저장. 단일 관리자 환경이라 RLS는 단순(인증된 사용자에게 전체 권한). UI에 노출되지 않는 `created_at`/`updated_at`도 모든 테이블에 두어 운영상 디버깅·복구에 활용.
 
+**DB는 데이터 저장 전용** — DB trigger·custom function·복잡한 default expression을 만들지 않는다. ID 발급·timestamp 갱신·집계 등 모든 비즈니스 로직은 Next.js Server (Server Component / Server Action)에서 처리. PostgreSQL의 내장 기능(`gen_random_uuid()`, sequence의 `nextval()`, CHECK 제약, FK)만 사용.
+
 ## 테이블
 
 ### 1. `teachers` (교사 명단)
@@ -16,7 +18,7 @@
 | name | text | NOT NULL, UNIQUE | 교사 이름 |
 | class_section | text | NOT NULL, CHECK IN ('junior 1','junior 2','senior 1') | 담당 반 |
 | created_at | timestamptz | DEFAULT now() | |
-| updated_at | timestamptz | DEFAULT now() | |
+| updated_at | timestamptz | DEFAULT now() | Server Action이 UPDATE 시 명시적으로 `now()` 세팅 |
 
 ### 2. `students` (학생)
 
@@ -27,7 +29,7 @@
 | grade | smallint | NOT NULL, CHECK (1~6) | 학년 |
 | class_section | text | NOT NULL, CHECK IN ('junior 1','junior 2','senior 1') | 반 |
 | created_at | timestamptz | DEFAULT now() | |
-| updated_at | timestamptz | DEFAULT now() | |
+| updated_at | timestamptz | DEFAULT now() | Server Action이 UPDATE 시 명시적으로 `now()` 세팅 |
 
 **복합 CHECK**: `(grade BETWEEN 1 AND 3 AND class_section IN ('junior 1','junior 2')) OR (grade BETWEEN 4 AND 6 AND class_section = 'senior 1')` — 학년·반 조합 무결성.
 
@@ -37,16 +39,16 @@
 
 | 컬럼 | 타입 | 제약 | 설명 |
 |---|---|---|---|
-| id | text | PK | 바코드 ID (`BK00001`~) |
+| id | text | PK (default 없음) | 바코드 ID (`BK00001`~). Server Action이 발급 |
 | title | text | NOT NULL | |
 | author | text | | |
 | publisher | text | | |
 | grade_level | smallint | CHECK (1~6) | 권장 학년 |
 | language | text | NOT NULL, CHECK IN ('ko','en') | 한국어/영어 구분 |
 | level | text | | 한국어=단계, 영어=레벨 (예: `1`, `2단계`, `Level 3`, `AR 2.5`) |
-| cover_image_url | text | | 표지 이미지 URL |
+| cover_image_url | text | | 표지 이미지 URL (Storage `book-covers` 버킷의 public URL) |
 | registered_at | timestamptz | DEFAULT now() | |
-| updated_at | timestamptz | DEFAULT now() | |
+| updated_at | timestamptz | DEFAULT now() | Server Action이 UPDATE 시 명시적으로 `now()` 세팅 |
 
 라벨 인쇄 여부 추적용 `printed` 컬럼은 두지 않음. 라벨 출력은 책 목록에서 다중 선택해 일회성 PDF 생성.
 
@@ -63,6 +65,8 @@
 | returned_at | timestamptz | | NULL이면 대여 중 |
 | returned_by_teacher_id | uuid | FK → teachers(id) ON DELETE RESTRICT | 반납 처리 교사 |
 
+`loans`에는 `updated_at` 컬럼이 없다. 상태 전이는 `returned_at`으로 표현.
+
 **UNIQUE(book_id) WHERE returned_at IS NULL** — 한 책의 활성 대여는 1개만.
 
 ### 5. 관리자 계정
@@ -75,7 +79,7 @@
 |---|---|---|
 | books | `(language)` | 책 목록 한/영 탭 |
 | books | `(grade_level)` | 학년 필터 |
-| loans | `(book_id) WHERE returned_at IS NULL` | 반납 시 활성 대여 매칭 |
+| loans | `(book_id) WHERE returned_at IS NULL` | 반납 시 활성 대여 매칭 (UNIQUE) |
 | loans | `(student_id, returned_at)` | 학생별 현재 대여·이력 |
 | loans | `(due_date) WHERE returned_at IS NULL` | 연체 조회 |
 | students | `(grade, class_section)` | 학년·반 정렬·필터 |
@@ -83,20 +87,21 @@
 
 ## RLS
 
-모든 테이블 RLS 활성화. 정책: `auth.role() = 'authenticated'` 사용자에게 SELECT/INSERT/UPDATE/DELETE 전부 허용. anon 거부. 단일 관리자라 단순.
+모든 테이블 RLS 활성화. 정책: `authenticated` 사용자에게 SELECT/INSERT/UPDATE/DELETE 전부 허용(`USING (true) WITH CHECK (true)`), `anon`은 거부. 단일 관리자 운영이라 의도된 단순화.
 
 ## 바코드 ID 발급
 
-```sql
-CREATE SEQUENCE book_id_seq START 1;
+DB 컬럼 default는 두지 않는다. **Next.js Server Action**이 발급:
 
-CREATE OR REPLACE FUNCTION generate_book_id()
-RETURNS text LANGUAGE sql AS $$
-  SELECT 'BK' || lpad(nextval('book_id_seq')::text, 5, '0');
-$$;
+```ts
+// pseudo-code (실제 구현은 Phase 1 책 페이지)
+const { data: { nextval } } = await supabase.rpc('nextval', { sequence: 'book_id_seq' })
+// 또는 SQL: SELECT nextval('book_id_seq') AS v
+const id = 'BK' + String(nextval).padStart(5, '0')
+await supabase.from('books').insert({ id, title, ... })
 ```
 
-`books.id` default를 `generate_book_id()`로 지정. 99,999권 초과 시 6자리로 확장.
+`book_id_seq`는 PostgreSQL 시퀀스(`CREATE SEQUENCE book_id_seq START 1`). 99,999권 초과 시 lpad 자리수 6으로 확장.
 
 ## CSV 포맷
 
@@ -124,7 +129,7 @@ title,author,publisher,grade_level,language,level,cover_image_url
 해리포터와 마법사의 돌,J.K.롤링,문학수첩,4,ko,4단계,https://...
 The Cat in the Hat,Dr. Seuss,Random House,2,en,Level 1,https://...
 ```
-- 바코드 ID는 시스템이 자동 발급(CSV에 없음)
+- 바코드 ID는 Server Action이 자동 발급(CSV에 없음)
 - `language`는 `ko` 또는 `en`
 - `cover_image_url`은 비워둘 수 있음
 
@@ -139,7 +144,7 @@ The Cat in the Hat,Dr. Seuss,Random House,2,en,Level 1,https://...
 - **업로드 흐름**: 책 등록·수정 시 파일 업로드 → 반환된 public URL을 `cover_image_url`에 저장. 책 삭제 시 Storage 객체도 함께 정리.
 - **Storage RLS**:
   - `SELECT`: public (학생도 접근 가능)
-  - `INSERT` / `UPDATE` / `DELETE`: `auth.role() = 'authenticated'` (관리자만)
+  - `INSERT` / `UPDATE` / `DELETE`: `authenticated` (관리자만)
 
 ## 정렬 쿼리 패턴
 
@@ -178,3 +183,4 @@ ORDER BY (CASE WHEN loans.due_date < CURRENT_DATE
 - **`teachers.class_section` 추가**: 교사 명단에 담당 반을 표시하기 위한 필수 정보.
 - **FK ON DELETE RESTRICT**: 학생/책/교사 함부로 삭제해서 대여 이력이 깨지지 않도록 차단.
 - **관리자 테이블 없이 `auth.users` 단일 계정**: 단순성 + Supabase Auth 표준 기능 활용.
+- **DB trigger / custom function 없음**: timestamp 갱신·ID 발급 같은 로직은 Next.js Server에서. DB는 데이터 저장과 무결성 제약(CHECK·FK·UNIQUE)만 담당.
