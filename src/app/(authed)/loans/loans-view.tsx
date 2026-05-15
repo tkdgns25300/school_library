@@ -1,7 +1,18 @@
 "use client";
 
+import { useMemo, useState } from "react";
+import { Search } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -10,9 +21,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { CLASS_SECTIONS } from "@/constants/class-sections";
 import { LANGUAGE_LABEL } from "@/constants/languages";
 import { cn } from "@/lib/utils";
 import type { Language } from "@/types/domain";
+
+import { LoanDetailDialog } from "./loan-detail-dialog";
 
 export type LoanRow = {
   id: string;
@@ -33,6 +47,8 @@ export type LoanRow = {
   };
 };
 
+type Teacher = { id: string; name: string };
+
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
 }
@@ -45,17 +61,60 @@ function overdueDays(dueDate: string): number {
 
 export function LoansView({
   loans,
+  teachers,
   totalActive,
   overdueCount,
   maxOverdueDays,
   dueTodayCount,
 }: {
   loans: LoanRow[];
+  teachers: Teacher[];
   totalActive: number;
   overdueCount: number;
   maxOverdueDays: number;
   dueTodayCount: number;
 }) {
+  const [search, setSearch] = useState("");
+  const [languageFilter, setLanguageFilter] = useState<string>("all");
+  const [sectionFilter, setSectionFilter] = useState<string>("all");
+  const [selectedLoan, setSelectedLoan] = useState<LoanRow | null>(null);
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return loans.filter((l) => {
+      if (
+        languageFilter !== "all" &&
+        l.book.language !== languageFilter
+      )
+        return false;
+      if (
+        sectionFilter !== "all" &&
+        l.student.class_section !== sectionFilter
+      )
+        return false;
+      if (q !== "") {
+        const matches =
+          l.student.name.includes(search.trim()) ||
+          l.book.title.toLowerCase().includes(q) ||
+          l.book.id.toLowerCase().includes(q);
+        if (!matches) return false;
+      }
+      return true;
+    });
+  }, [loans, search, languageFilter, sectionFilter]);
+
+  const activeCountByStudent = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const l of loans) {
+      map.set(l.student.id, (map.get(l.student.id) ?? 0) + 1);
+    }
+    return map;
+  }, [loans]);
+
+  const otherActiveCount = selectedLoan
+    ? (activeCountByStudent.get(selectedLoan.student.id) ?? 1) - 1
+    : 0;
+
   return (
     <div className="space-y-6">
       <div>
@@ -77,6 +136,42 @@ export function LoansView({
         <KpiCard label="오늘 반납 예정" value={dueTodayCount} unit="권" />
       </div>
 
+      <div className="rounded-xl border bg-card p-4 shadow-sm">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative max-w-md flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="학생·책 제목·바코드로 검색…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <LanguageToggle
+            value={languageFilter}
+            onChange={setLanguageFilter}
+          />
+          <Select
+            value={sectionFilter}
+            onValueChange={(v) => setSectionFilter(v ?? "all")}
+          >
+            <SelectTrigger className="w-36">
+              <SelectValue>
+                {sectionFilter === "all" ? "전체 반" : sectionFilter}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">전체 반</SelectItem>
+              {CLASS_SECTIONS.map((s) => (
+                <SelectItem key={s.id} value={s.id}>
+                  {s.id}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
       <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
         <Table className="table-fixed">
           <TableHeader>
@@ -91,21 +186,73 @@ export function LoansView({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {loans.length === 0 ? (
+            {filtered.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={7}
                   className="py-12 text-center text-muted-foreground"
                 >
-                  활성 대여가 없습니다.
+                  {loans.length === 0
+                    ? "활성 대여가 없습니다."
+                    : "검색 결과가 없습니다."}
                 </TableCell>
               </TableRow>
             ) : (
-              loans.map((loan) => <LoanRowItem key={loan.id} loan={loan} />)
+              filtered.map((loan) => (
+                <LoanRowItem
+                  key={loan.id}
+                  loan={loan}
+                  onClick={() => setSelectedLoan(loan)}
+                />
+              ))
             )}
           </TableBody>
         </Table>
       </div>
+
+      <LoanDetailDialog
+        loan={selectedLoan}
+        teachers={teachers}
+        otherActiveCount={otherActiveCount}
+        open={selectedLoan !== null}
+        onOpenChange={(open) => {
+          if (!open) setSelectedLoan(null);
+        }}
+      />
+    </div>
+  );
+}
+
+function LanguageToggle({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const options = [
+    { v: "all", label: "전체" },
+    { v: "ko", label: "한국어" },
+    { v: "en", label: "English" },
+  ];
+  return (
+    <div className="inline-flex overflow-hidden rounded-md border bg-card">
+      {options.map(({ v, label }, idx) => (
+        <button
+          key={v}
+          type="button"
+          onClick={() => onChange(v)}
+          className={cn(
+            "px-3 py-1.5 text-sm font-medium transition-colors",
+            idx > 0 && "border-l",
+            value === v
+              ? "bg-primary text-primary-foreground"
+              : "text-muted-foreground hover:bg-muted/60",
+          )}
+        >
+          {label}
+        </button>
+      ))}
     </div>
   );
 }
@@ -146,7 +293,13 @@ function KpiCard({
   );
 }
 
-function LoanRowItem({ loan }: { loan: LoanRow }) {
+function LoanRowItem({
+  loan,
+  onClick,
+}: {
+  loan: LoanRow;
+  onClick: () => void;
+}) {
   const today = todayIso();
   const days = overdueDays(loan.due_date);
   const isOverdue = days > 0;
@@ -154,7 +307,10 @@ function LoanRowItem({ loan }: { loan: LoanRow }) {
   const isKo = loan.book.language === "ko";
 
   return (
-    <TableRow>
+    <TableRow
+      onClick={onClick}
+      className="cursor-pointer transition-colors hover:bg-muted/40"
+    >
       <TableCell>
         <div
           className={cn(

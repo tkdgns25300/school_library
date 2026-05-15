@@ -11,7 +11,7 @@ function todayIso(): string {
 export default async function LoansPage() {
   const supabase = await createClient();
 
-  const [loansRes, studentsRes, booksRes] = await Promise.all([
+  const [loansRes, studentsRes, booksRes, teachersRes] = await Promise.all([
     supabase
       .from("loans")
       .select("id, loaned_at, due_date, book_id, student_id")
@@ -20,6 +20,7 @@ export default async function LoansPage() {
     supabase
       .from("books")
       .select("id, title, author, language, cover_image_url"),
+    supabase.from("teachers").select("id, name").order("name"),
   ]);
 
   const studentMap = new Map(
@@ -63,6 +64,7 @@ export default async function LoansPage() {
         <div className="mx-auto max-w-7xl">
           <LoansView
             loans={sorted}
+            teachers={teachersRes.data ?? []}
             totalActive={sorted.length}
             overdueCount={overdue.length}
             maxOverdueDays={maxOverdueDays}
