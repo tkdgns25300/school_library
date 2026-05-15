@@ -38,7 +38,7 @@ import { BookDeleteDialog } from "./book-delete-dialog";
 import { BookFormDialog } from "./book-form-dialog";
 import { BooksCsvDialog } from "./books-csv-dialog";
 
-type Book = {
+export type BookWithStatus = {
   id: string;
   title: string;
   author: string | null;
@@ -47,21 +47,25 @@ type Book = {
   language: string;
   level: string | null;
   cover_image_url: string | null;
+  isActive: boolean;
 };
 
 type FormDialog =
   | { type: "create" }
-  | { type: "edit"; book: Book }
+  | { type: "edit"; book: BookWithStatus }
   | null;
 
 const TAB_TRIGGER_CLASS =
   "flex-none rounded-none border-b-2 border-transparent bg-transparent px-4 py-2.5 text-sm font-medium text-muted-foreground shadow-none transition-colors data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none";
 
-export function BooksView({ books }: { books: Book[] }) {
+export function BooksView({ books }: { books: BookWithStatus[] }) {
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [formDialog, setFormDialog] = useState<FormDialog>(null);
-  const [deleteTarget, setDeleteTarget] = useState<Book | null>(null);
-  const [barcodeTarget, setBarcodeTarget] = useState<Book | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<BookWithStatus | null>(null);
+  const [barcodeTarget, setBarcodeTarget] = useState<BookWithStatus | null>(
+    null,
+  );
   const [csvOpen, setCsvOpen] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [isPrinting, startPrinting] = useTransition();
@@ -75,15 +79,20 @@ export function BooksView({ books }: { books: Book[] }) {
     [books],
   );
 
-  const filterBy = (list: Book[]) => {
+  const filterBy = (list: BookWithStatus[]) => {
     const q = search.trim().toLowerCase();
-    if (q === "") return list;
-    return list.filter(
-      (b) =>
-        b.title.toLowerCase().includes(q) ||
-        (b.author?.toLowerCase().includes(q) ?? false) ||
-        (b.level?.toLowerCase().includes(q) ?? false),
-    );
+    return list.filter((b) => {
+      if (statusFilter === "available" && b.isActive) return false;
+      if (statusFilter === "active" && !b.isActive) return false;
+      if (q !== "") {
+        const matches =
+          b.title.toLowerCase().includes(q) ||
+          (b.author?.toLowerCase().includes(q) ?? false) ||
+          (b.level?.toLowerCase().includes(q) ?? false);
+        if (!matches) return false;
+      }
+      return true;
+    });
   };
 
   function toggle(id: string) {
@@ -95,7 +104,7 @@ export function BooksView({ books }: { books: Book[] }) {
     });
   }
 
-  function toggleAll(list: Book[], checked: boolean) {
+  function toggleAll(list: BookWithStatus[], checked: boolean) {
     setSelected((prev) => {
       const next = new Set(prev);
       if (checked) list.forEach((b) => next.add(b.id));
@@ -162,14 +171,17 @@ export function BooksView({ books }: { books: Book[] }) {
 
         <div className="mt-4 space-y-4">
           <div className="rounded-xl border bg-card p-4 shadow-sm">
-            <div className="relative max-w-md">
-              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="제목·저자·단계로 검색…"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-9"
-              />
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="relative max-w-md flex-1">
+                <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="제목·저자·단계로 검색…"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              <StatusToggle value={statusFilter} onChange={setStatusFilter} />
             </div>
           </div>
 
@@ -237,6 +249,40 @@ export function BooksView({ books }: { books: Book[] }) {
   );
 }
 
+function StatusToggle({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const options = [
+    { v: "all", label: "전체" },
+    { v: "available", label: "대여 가능" },
+    { v: "active", label: "대여 중" },
+  ];
+  return (
+    <div className="inline-flex overflow-hidden rounded-md border bg-card">
+      {options.map(({ v, label }, idx) => (
+        <button
+          key={v}
+          type="button"
+          onClick={() => onChange(v)}
+          className={cn(
+            "px-3 py-1.5 text-sm font-medium transition-colors",
+            idx > 0 && "border-l",
+            value === v
+              ? "bg-primary text-primary-foreground"
+              : "text-muted-foreground hover:bg-muted/60",
+          )}
+        >
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function BooksTable({
   language,
   books,
@@ -249,14 +295,14 @@ function BooksTable({
   onBarcode,
 }: {
   language: Language;
-  books: Book[];
+  books: BookWithStatus[];
   totalCount: number;
   selected: Set<string>;
   onToggle: (id: string) => void;
-  onToggleAll: (list: Book[], checked: boolean) => void;
-  onEdit: (book: Book) => void;
-  onDelete: (book: Book) => void;
-  onBarcode: (book: Book) => void;
+  onToggleAll: (list: BookWithStatus[], checked: boolean) => void;
+  onEdit: (book: BookWithStatus) => void;
+  onDelete: (book: BookWithStatus) => void;
+  onBarcode: (book: BookWithStatus) => void;
 }) {
   const allChecked = books.length > 0 && books.every((b) => selected.has(b.id));
 
@@ -278,18 +324,19 @@ function BooksTable({
             <TableHead className="w-16">표지</TableHead>
             <TableHead className="w-28">바코드</TableHead>
             <TableHead>제목 / 저자</TableHead>
-            <TableHead className="w-40">출판사</TableHead>
-            <TableHead className="w-28">
+            <TableHead className="w-32">출판사</TableHead>
+            <TableHead className="w-24">
               {LANGUAGE_LEVEL_TERM[language]}
             </TableHead>
-            <TableHead className="w-28 text-right">액션</TableHead>
+            <TableHead className="w-24">상태</TableHead>
+            <TableHead className="w-24 text-right">액션</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {books.length === 0 ? (
             <TableRow>
               <TableCell
-                colSpan={7}
+                colSpan={8}
                 className="py-12 text-center text-muted-foreground"
               >
                 {totalCount === 0
@@ -365,6 +412,9 @@ function BooksTable({
                     <span className="text-muted-foreground">—</span>
                   )}
                 </TableCell>
+                <TableCell>
+                  <StatusBadge isActive={book.isActive} />
+                </TableCell>
                 <TableCell className="text-right">
                   <Button
                     variant="ghost"
@@ -389,5 +439,20 @@ function BooksTable({
         </TableBody>
       </Table>
     </div>
+  );
+}
+
+function StatusBadge({ isActive }: { isActive: boolean }) {
+  if (isActive) {
+    return (
+      <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+        대여 중
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
+      대여 가능
+    </span>
   );
 }
