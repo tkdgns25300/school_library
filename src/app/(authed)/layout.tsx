@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { Sidebar } from "@/components/layout/sidebar";
+import { Toaster } from "@/components/ui/sonner";
 
 export default async function AuthedLayout({
   children,
@@ -15,6 +16,7 @@ export default async function AuthedLayout({
     <div className="flex min-h-screen bg-background">
       <Sidebar email={user?.email ?? "관리자"} />
       <div className="flex flex-1 flex-col">{children}</div>
+      <Toaster />
     </div>
   );
 }

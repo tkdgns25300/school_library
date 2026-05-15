@@ -5,10 +5,12 @@ import { ArrowLeft } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { Badge } from "@/components/ui/badge";
 import { CLASS_SECTIONS } from "@/constants/class-sections";
+import { sortActiveLoansForOperation } from "@/lib/sort/loans";
 import { sortStudentsForRoster } from "@/lib/sort/students";
 import { createClient } from "@/lib/supabase/server";
+import type { ClassSection } from "@/types/domain";
 
-import { OperationView } from "./operation-view";
+import { OperationView, type ActiveLoan } from "./operation-view";
 
 export default async function OperationSectionPage({
   params,
@@ -22,7 +24,7 @@ export default async function OperationSectionPage({
   if (!sectionMeta) notFound();
 
   const supabase = await createClient();
-  const [studentsRes, teachersRes] = await Promise.all([
+  const [studentsRes, teachersRes, loansRes, booksRes] = await Promise.all([
     supabase
       .from("students")
       .select("id, name, grade, class_section")
@@ -31,10 +33,45 @@ export default async function OperationSectionPage({
       .from("teachers")
       .select("id, name, class_section")
       .order("name"),
+    supabase
+      .from("loans")
+      .select("id, due_date, book_id, student_id")
+      .is("returned_at", null),
+    supabase
+      .from("books")
+      .select("id, title, author, language"),
   ]);
 
   const students = sortStudentsForRoster(studentsRes.data ?? []);
   const teachers = teachersRes.data ?? [];
+
+  const studentMap = new Map((studentsRes.data ?? []).map((s) => [s.id, s]));
+  const bookMap = new Map((booksRes.data ?? []).map((b) => [b.id, b]));
+
+  const sectionLoans: ActiveLoan[] = (loansRes.data ?? [])
+    .map((l) => {
+      const student = studentMap.get(l.student_id);
+      const book = bookMap.get(l.book_id);
+      if (!student || !book) return null;
+      return {
+        id: l.id,
+        due_date: l.due_date,
+        student,
+        book,
+      };
+    })
+    .filter((l): l is ActiveLoan => l !== null);
+
+  const koLoans = sortActiveLoansForOperation(
+    sectionLoans.filter((l) => l.book.language === "ko"),
+  );
+  const enLoans = sortActiveLoansForOperation(
+    sectionLoans.filter((l) => l.book.language === "en"),
+  );
+
+  const overdueCount = sectionLoans.filter(
+    (l) => l.due_date < new Date().toISOString().slice(0, 10),
+  ).length;
 
   return (
     <>
@@ -44,7 +81,7 @@ export default async function OperationSectionPage({
       />
       <main className="flex-1 bg-muted/30 px-6 py-8">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-6 flex items-center gap-3">
+          <div className="mb-6 flex flex-wrap items-center gap-3">
             <Link
               href="/"
               className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
@@ -55,11 +92,25 @@ export default async function OperationSectionPage({
             <span className="text-muted-foreground">·</span>
             <Badge variant="secondary">{sectionMeta.id}</Badge>
             <span className="text-sm text-muted-foreground">
-              학생 {students.length}명
+              학생 {students.length}명 · 대여 중 {sectionLoans.length}권
+              {overdueCount > 0 ? (
+                <>
+                  {" · "}
+                  <span className="font-semibold text-destructive">
+                    연체 {overdueCount}권
+                  </span>
+                </>
+              ) : null}
             </span>
           </div>
 
-          <OperationView students={students} teachers={teachers} />
+          <OperationView
+            section={section as ClassSection}
+            students={students}
+            teachers={teachers}
+            koLoans={koLoans}
+            enLoans={enLoans}
+          />
         </div>
       </main>
     </>
