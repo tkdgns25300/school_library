@@ -1,54 +1,62 @@
-# Snapshot — 2026-05-14
+# Snapshot — 2026-05-15 (저녁)
 
-> 시점 기반 핸드오프 문서. 새 환경에서 작업 재개 시 이 파일부터 본다.
+> 시점 핸드오프. 새 환경에서 재개 시 이 파일부터.
 > 영구 사실은 [`../CLAUDE.md`](../CLAUDE.md) · [`SPEC.md`](./SPEC.md) · [`SCHEMA.md`](./SCHEMA.md) · [`ROADMAP.md`](./ROADMAP.md) · [`../README.md`](../README.md).
-> Phase 0 종료되면 갱신 또는 삭제.
+> Phase 2 시작하거나 정리 끝나면 갱신·삭제.
 
-## 현재 위치
+## 현재 위치 — 🎉 Phase 1 (MVP) 완료
 
-**Phase 0 마무리** 중. 검증 기준: 로그인 → 빈 운영 페이지(반 카드 3개) 진입까지.
+5페이지 모두 운영 가능:
 
-| 슬라이스 | 상태 |
+| 라우트 | 기능 |
 |---|---|
-| S0-1 — Supabase server 클라이언트 + DB 타입 | ✅ (커밋 `ec8e561`) |
-| **S0-2** — `src/proxy.ts` + `src/app/login/page.tsx` | ⬅️ 다음 |
-| S0-3 — 글로벌 레이아웃 + 빈 운영 페이지(반 카드 3개) | ⏳ |
+| `/login` | Supabase Auth |
+| `/` | 운영 홈 — 반 카드 3개(실 KPI) → 클릭 시 반별 |
+| `/operation/[section]` | 반별 운영 — 한·영 칼럼, lend/return + 가드 + 활성 대여 리스트 |
+| `/students` | CRUD + CSV + KO/EN (대여/연체) 실시간 표시 |
+| `/teachers` | CRUD + CSV |
+| `/books` | CRUD + 표지 Storage + CSV + 라벨 PDF + 상태 토글 |
+| `/loans` | 모니터링 — KPI + 회수 우선순위 표 + 상세 모달 + 반납 처리 |
 
-## 이번 세션 결정 (`CLAUDE.md` · `SCHEMA.md` 박제 완료)
+**최신 커밋**: `526bf73` (Wire book status toggle and active-loan badges)
 
-1. **Server-only data flow** — Supabase는 무조건 Next.js Server를 거친다. 브라우저 client(`createBrowserClient`) 만들지 않는다. 단일 데이터 통로: `src/lib/supabase/server.ts`.
-2. **DB는 데이터 저장 전용** — DB trigger·custom function·복잡 default expression 만들지 않는다. PostgreSQL 내장(`gen_random_uuid()`, sequence `nextval()`, CHECK, FK)만 사용. ID 발급·timestamp 갱신·집계 등 비즈니스 로직은 Server Action / Server Component에서.
+## 다음 작업 후보 (우선순위 순)
 
-위 결정에 따른 DB 정리(이미 적용됨):
-- `set_updated_at()`·`generate_book_id()` 함수 + 3개 BEFORE UPDATE 트리거 제거
-- `books.id` default 제거 (Server Action이 `nextval('book_id_seq')` 후 `'BK' + lpad(...)` 조립해 INSERT)
-- `supabase/migrations/001_init.sql` · `src/types/database.ts` 모두 동기화
+### 정리 (Phase 2 진입 전 권장)
+1. CSV Dialog 추상화 — teachers/students/books 3중복 → `src/components/csv-import-dialog.tsx` 공통화
+2. Delete Dialog 추상화 — 동일 3중복 → 공통 confirm dialog
+3. `book-form-dialog.tsx` 분해 검토 (275줄, 표지 picker·언어 토글 sub) — 선택
+4. `URL.createObjectURL` revoke (book-form-dialog) — 미세 메모리
 
-## S0-2 작업 가이드
+### Phase 2 (운영 편의)
+- [ ] 추세 통계 (인기 도서 Top N, 학년별 빈도)
+- [ ] 학년 진급 일괄 처리 / 6학년 졸업 처리
+- [ ] 책·학생 일괄 작업
 
-1. **`src/proxy.ts`** — Next.js 16 Proxy (`middleware.ts`의 새 이름; 자세한 룰은 별도 메모 `nextjs_16_proxy`).
-   - 매 요청마다 `session.ts`의 `updateSession(request)` 호출 → `{ supabaseResponse, user }` 반환
-   - `!user`이고 경로가 `/login`이 아니면 `/login`으로 redirect
-   - **`runtime` config 사용 금지** (에러). 기본 Node.js runtime 그대로 둠.
-   - `matcher`로 `_next/static`·`_next/image`·`*.png` 등 정적 자원 제외
-2. **`src/app/login/page.tsx`** — 이메일/비밀번호 폼.
-   - shadcn `field` + `input` + `button`
-   - Server Action에서 `supabase.auth.signInWithPassword({ email, password })`
-   - 성공 시 `/`로 redirect, 실패 시 폼에 에러 표시
-3. `npm run build` 통과 + 브라우저에서 로그인 흐름 직접 확인
+### Phase 3 (선택)
+- [ ] ISBN API → 책 정보·표지 자동 채우기
+- [ ] 일괄 반납 (방학·졸업)
+- [ ] CSV 백업·내보내기
+- [ ] 연체 알림 (대여 상세 모달의 "알림 보내기")
 
-## 새 PC에서 재개 절차
+## 진행 퍼센티지
+- **MVP 기준** (Phase 0 + 1): **100%**
+- **전체 기준** (Phase 0+1+2+3): **80%**
 
-`README.md`의 'Local Setup' / '환경' / 'Supabase MCP' 절차 그대로:
+## 새 PC 재개 절차
+[`README.md`](../README.md)의 'Local Setup' / '환경' / 'Supabase MCP' 그대로:
+1. `git clone` → `git checkout dev` → `npm install`
+2. `.env` 복원 (Supabase Dashboard에서 키 복사)
+3. (AI 작업하려면) Supabase MCP 등록 — 새 PAT 발급 후 `claude mcp add ...`
+4. `npm run dev` 또는 새 슬라이스 진입
 
-1. `git clone https://github.com/tkdgns25300/school_library` → `cd school_library` → `git checkout dev` → `npm install`
-2. `.env` 복원 — Supabase Dashboard → Settings → API에서 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `ADMIN_EMAIL` 채우기
-3. (AI 작업 시) Supabase MCP 등록 — Supabase Dashboard에서 **새 토큰 발급** 후 README의 `claude mcp add supabase ...` 한 줄 실행. **이전 토큰은 보안상 폐기**.
-4. `npm run dev` → 현재 단계는 빈 placeholder 페이지만 보임 (S0-3까지 끝나야 운영 페이지 등장)
+## 박제 정책 (재확인용)
+- **DB는 데이터 저장 전용** — trigger·custom function·복잡 default 만들지 않음. 비즈니스 로직은 Server Action / Server Component에서.
+- **Server-only data flow** — Supabase는 무조건 Next.js Server를 거침. 브라우저 클라이언트 X.
+- **Next.js 16 Proxy** — `src/middleware.ts` X, `src/proxy.ts` 사용. runtime config 설정 금지.
+- **MCP는 SQL·마이그레이션·타입 생성용** — 앱 런타임 통로와 별개.
 
-## 참고: 현재 코드에서 사용하는 환경 변수
-
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-
-`SUPABASE_SERVICE_ROLE_KEY`는 `.env`에 있지만 **현재 코드 어디에서도 import하지 않음** — RLS + ANON_KEY + 쿠키 기반 인증 패턴(@supabase/ssr 표준)이라 service_role이 불필요. 향후에도 시스템 배치 작업 같은 게 생기지 않는 한 사용 안 함.
+## 알려진 미세 사항 (운영 시작에 영향 X)
+- `nextBookId`는 max(id)+1 — 단일 관리자 race 무시
+- `cover_image_url`은 Storage path를 가리키며, 책 삭제 시 가능한 확장자 다 시도 (jpg/jpeg/png/webp/gif) — orphan 가능성 미미
+- 학생 명단 (대여/연체) 컬럼은 페이지 진입 시 fetch — 진입할 때마다 fresh
