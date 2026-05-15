@@ -20,13 +20,14 @@ export default function LoginForm() {
 
   return (
     <form action={formAction}>
-      <FieldGroup>
+      <FieldGroup className="gap-5">
         <Field>
           <FieldLabel htmlFor="email">이메일</FieldLabel>
           <Input
             id="email"
             name="email"
             type="email"
+            placeholder="admin@thehim.school"
             autoComplete="email"
             required
             disabled={pending}
@@ -38,13 +39,18 @@ export default function LoginForm() {
             id="password"
             name="password"
             type="password"
+            placeholder="••••••••"
             autoComplete="current-password"
             required
             disabled={pending}
           />
         </Field>
         {state.error ? <FieldError>{state.error}</FieldError> : null}
-        <Button type="submit" disabled={pending}>
+        <Button
+          type="submit"
+          disabled={pending}
+          className="h-11 w-full text-base"
+        >
           {pending ? "로그인 중…" : "로그인"}
         </Button>
       </FieldGroup>

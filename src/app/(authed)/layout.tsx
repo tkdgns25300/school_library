@@ -2,6 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Toaster } from "@/components/ui/sonner";
 
+export const preferredRegion = ["icn1"];
+
 export default async function AuthedLayout({
   children,
 }: {

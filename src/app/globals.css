@@ -77,15 +77,15 @@
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
   --radius: 0.625rem;
-  /* Sidebar — 다크 navy (light/dark 모드 무관, 시안 디자인) */
-  --sidebar: oklch(0.2 0.04 260);
+  /* Sidebar — 더 진한 다크 navy + indigo 톤 (light/dark 모드 무관, 시안 디자인) */
+  --sidebar: oklch(0.18 0.06 265);
   --sidebar-foreground: oklch(0.95 0.005 250);
-  --sidebar-primary: oklch(0.35 0.13 262);
+  --sidebar-primary: oklch(0.55 0.23 270);
   --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.28 0.05 260);
+  --sidebar-accent: oklch(0.26 0.06 265);
   --sidebar-accent-foreground: oklch(0.97 0.005 250);
-  --sidebar-border: oklch(0.32 0.04 260);
-  --sidebar-ring: oklch(0.6 0.18 260);
+  --sidebar-border: oklch(0.28 0.05 265);
+  --sidebar-ring: oklch(0.6 0.18 265);
   --ko: oklch(0.35 0.12 270);
   --ko-foreground: oklch(0.98 0 0);
   --en: oklch(0.5 0.13 150);
@@ -116,15 +116,15 @@
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  /* Sidebar — 다크 navy (동일 유지) */
-  --sidebar: oklch(0.2 0.04 260);
+  /* Sidebar — 동일 (다크 모드 무관) */
+  --sidebar: oklch(0.18 0.06 265);
   --sidebar-foreground: oklch(0.95 0.005 250);
-  --sidebar-primary: oklch(0.35 0.13 262);
+  --sidebar-primary: oklch(0.55 0.23 270);
   --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.28 0.05 260);
+  --sidebar-accent: oklch(0.26 0.06 265);
   --sidebar-accent-foreground: oklch(0.97 0.005 250);
-  --sidebar-border: oklch(0.32 0.04 260);
-  --sidebar-ring: oklch(0.6 0.18 260);
+  --sidebar-border: oklch(0.28 0.05 265);
+  --sidebar-ring: oklch(0.6 0.18 265);
   --ko: oklch(0.6 0.18 270);
   --ko-foreground: oklch(0.15 0 0);
   --en: oklch(0.6 0.18 150);

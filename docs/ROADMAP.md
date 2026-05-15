@@ -38,6 +38,7 @@
 - [x] 정렬 헬퍼 (`src/lib/sort/students.ts`) — 학생 명단(학년→반→이름). 운영·대여 현황 정렬은 1-5/1-6에서 추가
 - [x] 컬러 토큰 (한국어=남색, 영어=초록) — `globals.css` `--ko`/`--en` + Tailwind 클래스
 - [x] 도메인 상수 — `src/constants/class-sections.ts`(CLASS_SECTIONS·CLASS_SECTION_ORDER·isValidGradeClassSection)·`languages.ts`
+- [x] 사이드바 접기 토글 — `localStorage` 기반, 폭 w-60 ↔ w-16, 아이콘만 남는 모드
 
 ### 1-2. 학생 명단 (완료)
 

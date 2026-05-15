@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { LANGUAGE_LABEL, LANGUAGE_SUBTITLE } from "@/constants/languages";
+import { LANGUAGE_LABEL } from "@/constants/languages";
 import { cn } from "@/lib/utils";
 import type { ClassSection, Language } from "@/types/domain";
 
@@ -288,13 +288,8 @@ function ColumnHeader({
         >
           {LANGUAGE_LABEL[language].short}
         </span>
-        <div>
-          <div className="text-base font-semibold leading-tight">
-            {LANGUAGE_LABEL[language].full}
-          </div>
-          <div className="mt-0.5 text-xs text-muted-foreground">
-            {LANGUAGE_SUBTITLE[language]}
-          </div>
+        <div className="text-base font-semibold leading-tight">
+          {LANGUAGE_LABEL[language].full}
         </div>
       </div>
       <div className="text-right text-sm leading-tight">
