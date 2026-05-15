@@ -11,8 +11,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -27,6 +27,8 @@ import {
   updateTeacher,
   type TeacherFormState,
 } from "./actions";
+
+const FIELD_LABEL_CLASS = "text-xs font-semibold uppercase tracking-wider text-muted-foreground";
 
 type Teacher = {
   id: string;
@@ -70,13 +72,15 @@ export function TeacherFormDialog({
         <form
           action={formAction}
           key={isEdit ? mode.teacher.id : "create"}
-          className="space-y-4"
+          className="space-y-5"
         >
           {isEdit ? (
             <input type="hidden" name="id" value={mode.teacher.id} />
           ) : null}
-          <Field>
-            <FieldLabel htmlFor="name">이름</FieldLabel>
+          <div className="space-y-2">
+            <Label htmlFor="name" className={FIELD_LABEL_CLASS}>
+              이름
+            </Label>
             <Input
               id="name"
               name="name"
@@ -86,15 +90,17 @@ export function TeacherFormDialog({
               placeholder="예: 김지영"
               autoFocus
             />
-          </Field>
-          <Field>
-            <FieldLabel htmlFor="class_section">담당 반</FieldLabel>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="class_section" className={FIELD_LABEL_CLASS}>
+              담당 반
+            </Label>
             <Select
               name="class_section"
               defaultValue={isEdit ? mode.teacher.class_section : "junior 1"}
               disabled={pending}
             >
-              <SelectTrigger id="class_section">
+              <SelectTrigger id="class_section" className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -105,8 +111,12 @@ export function TeacherFormDialog({
                 ))}
               </SelectContent>
             </Select>
-          </Field>
-          {state.error ? <FieldError>{state.error}</FieldError> : null}
+          </div>
+          {state.error ? (
+            <p className="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+              {state.error}
+            </p>
+          ) : null}
           <DialogFooter>
             <Button
               type="button"

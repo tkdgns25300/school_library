@@ -196,7 +196,14 @@ export function StudentsView({ students }: { students: Student[] }) {
           if (!open) setDeleteTarget(null);
         }}
       />
-      <StudentsCsvDialog open={csvOpen} onOpenChange={setCsvOpen} />
+      {csvOpen ? (
+        <StudentsCsvDialog
+          open
+          onOpenChange={(open) => {
+            if (!open) setCsvOpen(false);
+          }}
+        />
+      ) : null}
     </>
   );
 }

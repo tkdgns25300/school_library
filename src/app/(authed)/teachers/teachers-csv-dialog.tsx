@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
+import { Upload } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -11,8 +12,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 import { importTeachersCsv, type CsvImportState } from "./actions";
 
@@ -68,6 +69,9 @@ export function TeachersCsvDialog({
   );
 }
 
+const SECTION_LABEL_CLASS =
+  "text-xs font-semibold uppercase tracking-wider text-muted-foreground";
+
 function UploadForm({
   formAction,
   pending,
@@ -79,37 +83,57 @@ function UploadForm({
   error?: string;
   onCancel: () => void;
 }) {
+  const [fileName, setFileName] = useState<string>("");
+
   return (
-    <form action={formAction} className="space-y-4">
-      <section className="space-y-2">
-        <Label className="text-sm font-medium">CSV 포맷</Label>
-        <pre className="overflow-x-auto rounded-md border bg-muted/40 px-3 py-2 text-xs leading-relaxed">
+    <form action={formAction} className="space-y-5">
+      <section className="space-y-2.5">
+        <Label className={SECTION_LABEL_CLASS}>CSV 포맷</Label>
+        <pre className="overflow-x-auto rounded-md border border-l-2 border-l-primary/40 bg-muted/40 px-4 py-3 font-mono text-xs leading-relaxed">
           {SAMPLE_CSV}
         </pre>
-        <ul className="text-xs text-muted-foreground space-y-0.5">
-          <li>• UTF-8 인코딩 · 헤더 행 필수</li>
+        <ul className="space-y-1 pl-1 text-xs text-muted-foreground">
+          <li>· UTF-8 인코딩 · 헤더 행 필수</li>
           <li>
-            • <code className="font-mono">class_section</code>은{" "}
+            · <code className="font-mono">class_section</code>은{" "}
             <code className="font-mono">junior 1</code> ·{" "}
             <code className="font-mono">junior 2</code> ·{" "}
             <code className="font-mono">senior 1</code> 중 하나
           </li>
-          <li>• 중복 이름은 자동으로 실패 처리(개별 행)</li>
+          <li>· 중복 이름은 행 단위로 실패 처리</li>
         </ul>
       </section>
 
-      <section className="space-y-2">
-        <Label htmlFor="csv-file" className="text-sm font-medium">
+      <section className="space-y-2.5">
+        <Label htmlFor="csv-file" className={SECTION_LABEL_CLASS}>
           파일 선택
         </Label>
-        <Input
-          id="csv-file"
+        <input
           type="file"
           name="file"
+          id="csv-file"
           accept=".csv,text/csv"
+          className="sr-only"
+          onChange={(e) => setFileName(e.target.files?.[0]?.name ?? "")}
           required
           disabled={pending}
         />
+        <label
+          htmlFor="csv-file"
+          className={cn(
+            "flex cursor-pointer items-center justify-center gap-3 rounded-md border border-dashed px-4 py-6 text-sm transition-colors",
+            pending
+              ? "cursor-not-allowed opacity-50"
+              : "hover:border-foreground/30 hover:bg-muted/40",
+          )}
+        >
+          <Upload className="size-4 text-muted-foreground" />
+          {fileName ? (
+            <span className="font-medium">{fileName}</span>
+          ) : (
+            <span className="text-muted-foreground">CSV 파일 선택…</span>
+          )}
+        </label>
       </section>
 
       {error ? (
@@ -160,14 +184,12 @@ function ResultPanel({
       </div>
 
       {failed.length > 0 ? (
-        <section className="space-y-2">
-          <Label className="text-sm font-medium">실패 행</Label>
-          <ul className="max-h-48 space-y-1 overflow-y-auto rounded-md border bg-muted/20 p-2 text-xs">
+        <section className="space-y-2.5">
+          <Label className={SECTION_LABEL_CLASS}>실패 행</Label>
+          <ul className="max-h-48 space-y-1 overflow-y-auto rounded-md border bg-muted/20 p-3 font-mono text-xs">
             {failed.map((r) => (
               <li key={r.row} className="flex gap-2">
-                <span className="font-mono text-muted-foreground">
-                  행 {r.row}
-                </span>
+                <span className="text-muted-foreground">행 {r.row}</span>
                 {r.name ? <span>{r.name}</span> : null}
                 <span className="text-destructive">— {r.error}</span>
               </li>

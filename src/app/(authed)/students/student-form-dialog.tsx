@@ -11,8 +11,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -33,6 +33,9 @@ import {
   updateStudent,
   type StudentFormState,
 } from "./actions";
+
+const FIELD_LABEL_CLASS =
+  "text-xs font-semibold uppercase tracking-wider text-muted-foreground";
 
 type Student = {
   id: string;
@@ -86,19 +89,21 @@ export function StudentFormDialog({
         <DialogHeader>
           <DialogTitle>{isEdit ? "학생 수정" : "학생 추가"}</DialogTitle>
           <DialogDescription>
-            이름·학년·반을 입력하세요. 1~3학년은 junior, 4~6학년은 senior 1만 가능.
+            1~3학년은 junior 1·2, 4~6학년은 senior 1만 선택 가능합니다.
           </DialogDescription>
         </DialogHeader>
         <form
           action={formAction}
           key={isEdit ? mode.student.id : "create"}
-          className="space-y-4"
+          className="space-y-5"
         >
           {isEdit ? (
             <input type="hidden" name="id" value={mode.student.id} />
           ) : null}
-          <Field>
-            <FieldLabel htmlFor="name">이름</FieldLabel>
+          <div className="space-y-2">
+            <Label htmlFor="name" className={FIELD_LABEL_CLASS}>
+              이름
+            </Label>
             <Input
               id="name"
               name="name"
@@ -108,17 +113,19 @@ export function StudentFormDialog({
               placeholder="예: 홍길동"
               autoFocus
             />
-          </Field>
+          </div>
           <div className="grid grid-cols-2 gap-3">
-            <Field>
-              <FieldLabel htmlFor="grade">학년</FieldLabel>
+            <div className="space-y-2">
+              <Label htmlFor="grade" className={FIELD_LABEL_CLASS}>
+                학년
+              </Label>
               <Select
                 name="grade"
                 value={String(grade)}
-                onValueChange={(v) => setGrade(Number(v) as Grade)}
+                onValueChange={(v) => setGrade(Number(v ?? "1") as Grade)}
                 disabled={pending}
               >
-                <SelectTrigger id="grade">
+                <SelectTrigger id="grade" className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -129,36 +136,40 @@ export function StudentFormDialog({
                   ))}
                 </SelectContent>
               </Select>
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="class_section">반</FieldLabel>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="class_section" className={FIELD_LABEL_CLASS}>
+                반
+              </Label>
               <Select
                 name="class_section"
                 value={section}
-                onValueChange={(v) => setSection(v as ClassSection)}
+                onValueChange={(v) =>
+                  setSection((v ?? "junior 1") as ClassSection)
+                }
                 disabled={pending}
               >
-                <SelectTrigger id="class_section">
+                <SelectTrigger id="class_section" className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {CLASS_SECTIONS.map((s) => {
                     const allowed = isValidGradeClassSection(grade, s.id);
                     return (
-                      <SelectItem
-                        key={s.id}
-                        value={s.id}
-                        disabled={!allowed}
-                      >
+                      <SelectItem key={s.id} value={s.id} disabled={!allowed}>
                         {s.id}
                       </SelectItem>
                     );
                   })}
                 </SelectContent>
               </Select>
-            </Field>
+            </div>
           </div>
-          {state.error ? <FieldError>{state.error}</FieldError> : null}
+          {state.error ? (
+            <p className="rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+              {state.error}
+            </p>
+          ) : null}
           <DialogFooter>
             <Button
               type="button"
