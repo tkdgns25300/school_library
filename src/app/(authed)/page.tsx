@@ -39,7 +39,7 @@ export default async function OperationHomePage() {
 
   return (
     <>
-      <PageHeader title="운영 화면" subtitle="대여·반납·연체·반별 현황 한눈에" />
+      <PageHeader title="대여 데스크" subtitle="반 선택 후 대여·반납과 반별 현황" />
       <main className="flex-1 bg-muted/30 px-6 py-10">
         <div className="mx-auto max-w-5xl">
           <header className="mb-10 text-center">

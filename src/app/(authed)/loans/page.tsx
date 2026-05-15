@@ -59,7 +59,7 @@ export default async function LoansPage() {
 
   return (
     <>
-      <PageHeader title="모니터링" subtitle="반별 대여 · 연체 현황" />
+      <PageHeader title="대여 현황" subtitle="빌려간 책 · 연체 한눈에" />
       <main className="flex-1 bg-muted/30 px-6 py-8">
         <div className="mx-auto max-w-7xl">
           <LoansView

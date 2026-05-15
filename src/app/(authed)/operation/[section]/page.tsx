@@ -76,7 +76,7 @@ export default async function OperationSectionPage({
   return (
     <>
       <PageHeader
-        title="운영 화면"
+        title="대여 데스크"
         subtitle={`${sectionMeta.label} · ${sectionMeta.description}`}
       />
       <main className="flex-1 bg-muted/30 px-6 py-8">

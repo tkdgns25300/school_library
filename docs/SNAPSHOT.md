@@ -16,7 +16,7 @@
 | `/students` | CRUD + CSV + KO/EN (대여/연체) 실시간 표시 |
 | `/teachers` | CRUD + CSV |
 | `/books` | CRUD + 표지 Storage + CSV + 라벨 PDF + 상태 토글 |
-| `/loans` | 모니터링 — KPI + 회수 우선순위 표 + 상세 모달 + 반납 처리 |
+| `/loans` | 대여 현황 — KPI + 회수 우선순위 표 + 상세 모달 + 반납 처리 |
 
 **최신 커밋**: `526bf73` (Wire book status toggle and active-loan badges)
 

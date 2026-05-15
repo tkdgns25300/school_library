@@ -160,7 +160,7 @@ ORDER BY grade ASC,
          END,
          name
 
--- 운영 화면 — 대여 중 리스트: 연체 먼저 → 학년 ↑ → 이름
+-- 대여 데스크 — 대여 중 리스트: 연체 먼저 → 학년 ↑ → 이름
 ORDER BY (CASE WHEN loans.due_date < CURRENT_DATE
                  AND loans.returned_at IS NULL THEN 0 ELSE 1 END),
          students.grade ASC,

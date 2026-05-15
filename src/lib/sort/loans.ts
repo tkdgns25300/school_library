@@ -7,7 +7,7 @@ function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-// 운영 화면 — 대여 중 리스트: 연체 먼저 → 학년 ↑ → 이름
+// 대여 데스크 — 대여 중 리스트: 연체 먼저 → 학년 ↑ → 이름
 export function sortActiveLoansForOperation<T extends ActiveLoanLike>(
   loans: ReadonlyArray<T>,
 ): T[] {

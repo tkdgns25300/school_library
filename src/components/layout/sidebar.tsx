@@ -24,8 +24,8 @@ const NAV_GROUPS = [
   {
     label: "운영",
     items: [
-      { href: "/", label: "운영 화면", icon: LayoutGrid },
-      { href: "/loans", label: "모니터링", icon: Activity },
+      { href: "/", label: "대여 데스크", icon: LayoutGrid },
+      { href: "/loans", label: "대여 현황", icon: Activity },
     ],
   },
   {
