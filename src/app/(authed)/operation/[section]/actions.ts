@@ -111,12 +111,26 @@ export async function returnBook(input: {
 
   const { data: loan } = await supabase
     .from("loans")
-    .select("id")
+    .select("id, student_id")
     .eq("book_id", book.id)
     .is("returned_at", null)
     .maybeSingle();
 
   if (!loan) return { error: "현재 대여 중이 아닌 책입니다.", book };
+
+  // 반 가드: 빌린 학생이 이 반 소속인지 확인 — 다른 반에서 처리한 책은 그 반에서 반납.
+  const { data: borrower } = await supabase
+    .from("students")
+    .select("class_section, name, grade")
+    .eq("id", loan.student_id)
+    .maybeSingle();
+
+  if (borrower && borrower.class_section !== input.section) {
+    return {
+      error: `이 책은 ${borrower.class_section}의 ${borrower.grade}학년 ${borrower.name}이(가) 대여 중입니다. 해당 반에서 반납해주세요.`,
+      book,
+    };
+  }
 
   const { error } = await supabase
     .from("loans")

@@ -1,5 +1,5 @@
 import { PageHeader } from "@/components/layout/page-header";
-import { ClassCard } from "@/components/operation/class-card";
+import { ClassCard } from "./class-card";
 import { CLASS_SECTIONS } from "@/constants/class-sections";
 import { createClient } from "@/lib/supabase/server";
 

@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { LANGUAGE_LABEL } from "@/constants/languages";
+import { LANGUAGE_LABEL, LANGUAGE_SUBTITLE } from "@/constants/languages";
 import { cn } from "@/lib/utils";
 import type { ClassSection, Language } from "@/types/domain";
 
@@ -31,11 +31,6 @@ import { lendBook, returnBook, type ScannedBook } from "./actions";
 import type { ActiveLoan, Student, Teacher } from "./operation-view";
 
 const DEFAULT_DUE_DAYS = 7;
-
-const LANGUAGE_SUBTITLE: Record<Language, string> = {
-  ko: "동화 · 그림책 · 지식책",
-  en: "Picture books · Readers · Chapter books",
-};
 
 type Mode = "lend" | "return";
 

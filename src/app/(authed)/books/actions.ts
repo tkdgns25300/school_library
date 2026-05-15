@@ -121,15 +121,8 @@ export async function createBook(
   const supabase = await createClient();
   const id = await nextBookId(supabase);
 
-  let coverUrl: string | null = null;
-  if (parsed.cover) {
-    coverUrl = await uploadCover(supabase, id, parsed.cover);
-    if (coverUrl === null) {
-      return { error: "표지 업로드에 실패했습니다." };
-    }
-  }
-
-  const { error } = await supabase.from("books").insert({
+  // INSERT 먼저 (cover_image_url=null) — Storage 업로드 실패 시 orphan 방지.
+  const { error: insertError } = await supabase.from("books").insert({
     id,
     title: parsed.title,
     author: parsed.author,
@@ -137,14 +130,28 @@ export async function createBook(
     grade_level: parsed.gradeLevel,
     language: parsed.language,
     level: parsed.level,
-    cover_image_url: coverUrl,
+    cover_image_url: null,
   });
 
-  if (error) {
-    if (error.code === "23505") {
+  if (insertError) {
+    if (insertError.code === "23505") {
       return { error: "이미 같은 ID의 책이 존재합니다. 다시 시도해주세요." };
     }
     return { error: "책 등록에 실패했습니다." };
+  }
+
+  // 표지 있으면 Storage 업로드 + UPDATE.
+  if (parsed.cover) {
+    const coverUrl = await uploadCover(supabase, id, parsed.cover);
+    if (coverUrl === null) {
+      return {
+        error: "책은 등록됐으나 표지 업로드에 실패했습니다. 수정에서 다시 시도해주세요.",
+      };
+    }
+    await supabase
+      .from("books")
+      .update({ cover_image_url: coverUrl })
+      .eq("id", id);
   }
 
   revalidatePath("/books");
