@@ -28,24 +28,28 @@ import { StudentDeleteDialog } from "./student-delete-dialog";
 import { StudentFormDialog } from "./student-form-dialog";
 import { StudentsCsvDialog } from "./students-csv-dialog";
 
-type Student = {
+export type StudentWithStats = {
   id: string;
   name: string;
   grade: number;
   class_section: string;
+  koActive: number;
+  koOverdue: number;
+  enActive: number;
+  enOverdue: number;
 };
 
 type FormDialog =
   | { type: "create" }
-  | { type: "edit"; student: Student }
+  | { type: "edit"; student: StudentWithStats }
   | null;
 
-export function StudentsView({ students }: { students: Student[] }) {
+export function StudentsView({ students }: { students: StudentWithStats[] }) {
   const [search, setSearch] = useState("");
   const [gradeFilter, setGradeFilter] = useState<string>("all");
   const [sectionFilter, setSectionFilter] = useState<string>("all");
   const [formDialog, setFormDialog] = useState<FormDialog>(null);
-  const [deleteTarget, setDeleteTarget] = useState<Student | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<StudentWithStats | null>(null);
   const [csvOpen, setCsvOpen] = useState(false);
 
   const filtered = useMemo(() => {
@@ -168,8 +172,20 @@ export function StudentsView({ students }: { students: Student[] }) {
                     <TableCell className="truncate font-medium">
                       {student.name}
                     </TableCell>
-                    <TableCell className="text-muted-foreground">—</TableCell>
-                    <TableCell className="text-muted-foreground">—</TableCell>
+                    <TableCell>
+                      <LoanCount
+                        active={student.koActive}
+                        overdue={student.koOverdue}
+                        tone="ko"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <LoanCount
+                        active={student.enActive}
+                        overdue={student.enOverdue}
+                        tone="en"
+                      />
+                    </TableCell>
                     <TableCell className="text-right">
                       <Button
                         variant="ghost"
@@ -223,5 +239,37 @@ export function StudentsView({ students }: { students: Student[] }) {
         />
       ) : null}
     </>
+  );
+}
+
+function LoanCount({
+  active,
+  overdue,
+  tone,
+}: {
+  active: number;
+  overdue: number;
+  tone: "ko" | "en";
+}) {
+  if (active === 0) {
+    return <span className="text-muted-foreground">—</span>;
+  }
+  return (
+    <div className="flex items-center gap-2">
+      <span
+        className={
+          tone === "ko"
+            ? "font-semibold text-ko"
+            : "font-semibold text-en"
+        }
+      >
+        {active}권
+      </span>
+      {overdue > 0 ? (
+        <span className="inline-flex items-center rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-semibold text-destructive">
+          연체 {overdue}
+        </span>
+      ) : null}
+    </div>
   );
 }
