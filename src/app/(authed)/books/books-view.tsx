@@ -1,10 +1,18 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { BookPlus, Pencil, Search, Trash2, Upload } from "lucide-react";
+import { useMemo, useState, useTransition } from "react";
+import {
+  BookPlus,
+  FileDown,
+  Pencil,
+  Search,
+  Trash2,
+  Upload,
+} from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import {
   Tabs,
@@ -21,9 +29,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { LANGUAGE_LEVEL_TERM } from "@/constants/languages";
+import { downloadLabelsPdf } from "@/lib/download-labels";
 import { cn } from "@/lib/utils";
 import type { Language } from "@/types/domain";
 
+import { BookBarcodeDialog } from "./book-barcode-dialog";
 import { BookDeleteDialog } from "./book-delete-dialog";
 import { BookFormDialog } from "./book-form-dialog";
 import { BooksCsvDialog } from "./books-csv-dialog";
@@ -51,10 +61,19 @@ export function BooksView({ books }: { books: Book[] }) {
   const [search, setSearch] = useState("");
   const [formDialog, setFormDialog] = useState<FormDialog>(null);
   const [deleteTarget, setDeleteTarget] = useState<Book | null>(null);
+  const [barcodeTarget, setBarcodeTarget] = useState<Book | null>(null);
   const [csvOpen, setCsvOpen] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [isPrinting, startPrinting] = useTransition();
 
-  const koBooks = useMemo(() => books.filter((b) => b.language === "ko"), [books]);
-  const enBooks = useMemo(() => books.filter((b) => b.language === "en"), [books]);
+  const koBooks = useMemo(
+    () => books.filter((b) => b.language === "ko"),
+    [books],
+  );
+  const enBooks = useMemo(
+    () => books.filter((b) => b.language === "en"),
+    [books],
+  );
 
   const filterBy = (list: Book[]) => {
     const q = search.trim().toLowerCase();
@@ -67,6 +86,40 @@ export function BooksView({ books }: { books: Book[] }) {
     );
   };
 
+  function toggle(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleAll(list: Book[], checked: boolean) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (checked) list.forEach((b) => next.add(b.id));
+      else list.forEach((b) => next.delete(b.id));
+      return next;
+    });
+  }
+
+  function handlePrintSelected() {
+    if (selected.size === 0) return;
+    const selectedBooks = books.filter((b) => selected.has(b.id));
+    startPrinting(async () => {
+      await downloadLabelsPdf(selectedBooks);
+    });
+  }
+
+  const selectedCount = selected.size;
+  const labelButtonLabel =
+    selectedCount === 0
+      ? "라벨 PDF"
+      : isPrinting
+        ? "PDF 생성 중…"
+        : `선택 ${selectedCount}권 라벨 PDF`;
+
   return (
     <>
       <div className="mb-6 flex items-end justify-between gap-4">
@@ -78,6 +131,14 @@ export function BooksView({ books }: { books: Book[] }) {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={handlePrintSelected}
+            disabled={selectedCount === 0 || isPrinting}
+          >
+            <FileDown className="size-4" />
+            {labelButtonLabel}
+          </Button>
           <Button variant="outline" onClick={() => setCsvOpen(true)}>
             <Upload className="size-4" />
             CSV 업로드
@@ -117,8 +178,12 @@ export function BooksView({ books }: { books: Book[] }) {
               language="ko"
               books={filterBy(koBooks)}
               totalCount={koBooks.length}
+              selected={selected}
+              onToggle={toggle}
+              onToggleAll={toggleAll}
               onEdit={(book) => setFormDialog({ type: "edit", book })}
               onDelete={(book) => setDeleteTarget(book)}
+              onBarcode={(book) => setBarcodeTarget(book)}
             />
           </TabsContent>
           <TabsContent value="en" className="m-0">
@@ -126,8 +191,12 @@ export function BooksView({ books }: { books: Book[] }) {
               language="en"
               books={filterBy(enBooks)}
               totalCount={enBooks.length}
+              selected={selected}
+              onToggle={toggle}
+              onToggleAll={toggleAll}
               onEdit={(book) => setFormDialog({ type: "edit", book })}
               onDelete={(book) => setDeleteTarget(book)}
+              onBarcode={(book) => setBarcodeTarget(book)}
             />
           </TabsContent>
         </div>
@@ -149,6 +218,13 @@ export function BooksView({ books }: { books: Book[] }) {
           if (!open) setDeleteTarget(null);
         }}
       />
+      <BookBarcodeDialog
+        book={barcodeTarget}
+        open={barcodeTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) setBarcodeTarget(null);
+        }}
+      />
       {csvOpen ? (
         <BooksCsvDialog
           open
@@ -165,25 +241,47 @@ function BooksTable({
   language,
   books,
   totalCount,
+  selected,
+  onToggle,
+  onToggleAll,
   onEdit,
   onDelete,
+  onBarcode,
 }: {
   language: Language;
   books: Book[];
   totalCount: number;
+  selected: Set<string>;
+  onToggle: (id: string) => void;
+  onToggleAll: (list: Book[], checked: boolean) => void;
   onEdit: (book: Book) => void;
   onDelete: (book: Book) => void;
+  onBarcode: (book: Book) => void;
 }) {
+  const allChecked = books.length > 0 && books.every((b) => selected.has(b.id));
+
   return (
     <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
       <Table className="table-fixed">
         <TableHeader>
           <TableRow className="hover:bg-transparent">
-            <TableHead className="w-20">표지</TableHead>
+            <TableHead className="w-12">
+              <Checkbox
+                checked={allChecked}
+                onCheckedChange={(checked) =>
+                  onToggleAll(books, checked === true)
+                }
+                aria-label="전체 선택"
+                disabled={books.length === 0}
+              />
+            </TableHead>
+            <TableHead className="w-16">표지</TableHead>
             <TableHead className="w-28">바코드</TableHead>
             <TableHead>제목 / 저자</TableHead>
             <TableHead className="w-40">출판사</TableHead>
-            <TableHead className="w-28">{LANGUAGE_LEVEL_TERM[language]}</TableHead>
+            <TableHead className="w-28">
+              {LANGUAGE_LEVEL_TERM[language]}
+            </TableHead>
             <TableHead className="w-28 text-right">액션</TableHead>
           </TableRow>
         </TableHeader>
@@ -191,7 +289,7 @@ function BooksTable({
           {books.length === 0 ? (
             <TableRow>
               <TableCell
-                colSpan={6}
+                colSpan={7}
                 className="py-12 text-center text-muted-foreground"
               >
                 {totalCount === 0
@@ -202,6 +300,13 @@ function BooksTable({
           ) : (
             books.map((book) => (
               <TableRow key={book.id}>
+                <TableCell>
+                  <Checkbox
+                    checked={selected.has(book.id)}
+                    onCheckedChange={() => onToggle(book.id)}
+                    aria-label={`${book.title} 선택`}
+                  />
+                </TableCell>
                 <TableCell>
                   <div
                     className={cn(
@@ -233,8 +338,14 @@ function BooksTable({
                     )}
                   </div>
                 </TableCell>
-                <TableCell className="truncate font-mono text-xs text-primary">
-                  {book.id}
+                <TableCell>
+                  <button
+                    type="button"
+                    onClick={() => onBarcode(book)}
+                    className="cursor-pointer truncate font-mono text-xs text-primary transition-colors hover:underline"
+                  >
+                    {book.id}
+                  </button>
                 </TableCell>
                 <TableCell>
                   <div className="truncate font-medium">{book.title}</div>
