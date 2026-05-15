@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon, ScanLine } from "lucide-react";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -20,11 +20,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import { LANGUAGE_LABEL } from "@/constants/languages";
 import { cn } from "@/lib/utils";
 import type { Language } from "@/types/domain";
 
 const DEFAULT_DUE_DAYS = 7;
+
+const LANGUAGE_SUBTITLE: Record<Language, string> = {
+  ko: "동화 · 그림책 · 지식책",
+  en: "Picture books · Readers · Chapter books",
+};
 
 type Student = {
   id: string;
@@ -59,6 +65,7 @@ export function LanguageColumn({
     return d;
   });
   const [barcode, setBarcode] = useState<string>("");
+  const barcodeRef = useRef<HTMLInputElement>(null);
 
   const isKo = language === "ko";
   const accentClass = isKo ? "border-l-ko" : "border-l-en";
@@ -66,12 +73,16 @@ export function LanguageColumn({
     ? "bg-ko text-ko-foreground"
     : "bg-en text-en-foreground";
 
+  // TODO(S1-5c): 실제 권수·연체 계산
+  const activeCount = 0;
+  const overdueCount = 0;
+
   function handleBarcodeKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key !== "Enter") return;
     e.preventDefault();
     const value = barcode.trim();
     if (value === "") return;
-    // TODO(S1-5c): Server Action lendBook / returnBook 호출
+    // TODO(S1-5c): Server Action lendBook / returnBook
     setBarcode("");
   }
 
@@ -82,22 +93,41 @@ export function LanguageColumn({
         accentClass,
       )}
     >
-      <div className="flex items-center justify-between border-b p-4">
-        <div
-          className={cn(
-            "inline-flex items-center gap-2 rounded-md px-3 py-1 text-sm font-semibold",
-            badgeClass,
-          )}
-        >
-          <span>{LANGUAGE_LABEL[language].short}</span>
-          <span>{LANGUAGE_LABEL[language].full}</span>
+      <div className="flex items-start justify-between gap-4 p-5">
+        <div className="flex items-start gap-3">
+          <span
+            className={cn(
+              "inline-flex h-7 shrink-0 items-center rounded-md px-2 text-[11px] font-bold uppercase tracking-wider",
+              badgeClass,
+            )}
+          >
+            {LANGUAGE_LABEL[language].short}
+          </span>
+          <div>
+            <div className="text-base font-semibold leading-tight">
+              {LANGUAGE_LABEL[language].full}
+            </div>
+            <div className="mt-0.5 text-xs text-muted-foreground">
+              {LANGUAGE_SUBTITLE[language]}
+            </div>
+          </div>
         </div>
-        <span className="text-sm text-muted-foreground">
-          대여 중 0권 · 연체 0권
-        </span>
+        <div className="text-right text-sm leading-tight">
+          <div>
+            <span className="text-lg font-bold">{activeCount}</span>
+            <span className="text-muted-foreground"> 권 대여</span>
+          </div>
+          {overdueCount > 0 ? (
+            <div className="mt-0.5 text-xs font-semibold text-destructive">
+              연체 {overdueCount}권
+            </div>
+          ) : null}
+        </div>
       </div>
 
-      <div className="space-y-4 p-4">
+      <Separator />
+
+      <div className="space-y-4 p-5">
         <div className="flex gap-2">
           <Button
             type="button"
@@ -196,23 +226,41 @@ export function LanguageColumn({
           >
             바코드 스캔
           </Label>
-          <Input
-            id={`barcode-${language}`}
-            value={barcode}
-            onChange={(e) => setBarcode(e.target.value)}
-            onKeyDown={handleBarcodeKeyDown}
-            placeholder="BK00001"
-            autoFocus
-            className="font-mono"
-          />
+          <div className="flex gap-2">
+            <Input
+              id={`barcode-${language}`}
+              ref={barcodeRef}
+              value={barcode}
+              onChange={(e) => setBarcode(e.target.value)}
+              onKeyDown={handleBarcodeKeyDown}
+              placeholder="BK00001"
+              autoFocus
+              className="font-mono"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => barcodeRef.current?.focus()}
+            >
+              <ScanLine className="size-4" />
+              스캔
+            </Button>
+          </div>
         </div>
 
-        <div className="rounded-md border border-dashed bg-muted/30 p-6 text-center text-xs text-muted-foreground">
-          스캔하면 책 표지가 여기 표시됩니다.
-        </div>
+        <Separator />
 
-        <div className="rounded-md border bg-muted/20 p-4 text-center text-xs text-muted-foreground">
-          대여 중 도서 리스트는 다음 단계에서 표시됩니다.
+        <div className="space-y-2">
+          <div className="text-xs text-muted-foreground">
+            {mode === "lend"
+              ? "스캔하면 책 표지가 여기 표시됩니다"
+              : `반납 가능 · 현재 대여 중 ${activeCount}권`}
+          </div>
+          <div className="rounded-md border border-dashed bg-muted/20 px-4 py-8 text-center text-xs text-muted-foreground">
+            {mode === "lend"
+              ? "대여할 책을 스캔하세요"
+              : "대여 중 도서 리스트는 다음 단계에서 표시됩니다"}
+          </div>
         </div>
       </div>
     </div>
