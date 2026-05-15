@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { BookPlus, Pencil, Trash2, Upload } from "lucide-react";
+import { BookPlus, Pencil, Search, Trash2, Upload } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -66,11 +66,12 @@ export function BooksView({ books }: { books: Book[] }) {
 
   return (
     <>
-      <div className="mb-6 flex items-center justify-between gap-4">
+      <div className="mb-6 flex items-end justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold">책 목록</h2>
-          <p className="text-sm text-muted-foreground">
-            전체 {books.length}권 · 한국어 {koBooks.length}권 · 영어 {enBooks.length}권
+          <h2 className="text-2xl font-bold tracking-tight">책 목록</h2>
+          <p className="mt-1.5 text-sm text-muted-foreground">
+            전체 {books.length}권 · 한국어 {koBooks.length}권 · 영어{" "}
+            {enBooks.length}권
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -86,41 +87,53 @@ export function BooksView({ books }: { books: Book[] }) {
       </div>
 
       <Tabs defaultValue="ko">
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <TabsList>
-            <TabsTrigger value="ko">
-              한국어 도서 · {koBooks.length}
-            </TabsTrigger>
-            <TabsTrigger value="en">
-              English Books · {enBooks.length}
-            </TabsTrigger>
-          </TabsList>
-          <Input
-            placeholder="제목·저자·단계로 검색…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="max-w-sm"
-          />
-        </div>
+        <TabsList className="h-auto w-full justify-start rounded-none border-b bg-transparent p-0">
+          <TabsTrigger
+            value="ko"
+            className="rounded-none border-b-2 border-transparent bg-transparent px-4 py-2.5 text-sm font-medium text-muted-foreground shadow-none transition-colors data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none"
+          >
+            한국어 도서 · {koBooks.length}
+          </TabsTrigger>
+          <TabsTrigger
+            value="en"
+            className="rounded-none border-b-2 border-transparent bg-transparent px-4 py-2.5 text-sm font-medium text-muted-foreground shadow-none transition-colors data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none"
+          >
+            English Books · {enBooks.length}
+          </TabsTrigger>
+        </TabsList>
 
-        <TabsContent value="ko">
-          <BooksTable
-            language="ko"
-            books={filterBy(koBooks)}
-            totalCount={koBooks.length}
-            onEdit={(book) => setFormDialog({ type: "edit", book })}
-            onDelete={(book) => setDeleteTarget(book)}
-          />
-        </TabsContent>
-        <TabsContent value="en">
-          <BooksTable
-            language="en"
-            books={filterBy(enBooks)}
-            totalCount={enBooks.length}
-            onEdit={(book) => setFormDialog({ type: "edit", book })}
-            onDelete={(book) => setDeleteTarget(book)}
-          />
-        </TabsContent>
+        <div className="mt-4 space-y-4">
+          <div className="rounded-xl border bg-card p-4 shadow-sm">
+            <div className="relative max-w-md">
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="제목·저자·단계로 검색…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+          </div>
+
+          <TabsContent value="ko" className="m-0">
+            <BooksTable
+              language="ko"
+              books={filterBy(koBooks)}
+              totalCount={koBooks.length}
+              onEdit={(book) => setFormDialog({ type: "edit", book })}
+              onDelete={(book) => setDeleteTarget(book)}
+            />
+          </TabsContent>
+          <TabsContent value="en" className="m-0">
+            <BooksTable
+              language="en"
+              books={filterBy(enBooks)}
+              totalCount={enBooks.length}
+              onEdit={(book) => setFormDialog({ type: "edit", book })}
+              onDelete={(book) => setDeleteTarget(book)}
+            />
+          </TabsContent>
+        </div>
       </Tabs>
 
       {formDialog ? (
@@ -165,94 +178,108 @@ function BooksTable({
   onDelete: (book: Book) => void;
 }) {
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead className="w-16">표지</TableHead>
-          <TableHead className="w-28">바코드</TableHead>
-          <TableHead>제목 / 저자</TableHead>
-          <TableHead>출판사</TableHead>
-          <TableHead>{LANGUAGE_LEVEL_TERM[language]}</TableHead>
-          <TableHead className="w-32 text-right">액션</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {books.length === 0 ? (
-          <TableRow>
-            <TableCell
-              colSpan={6}
-              className="text-center text-muted-foreground"
-            >
-              {totalCount === 0
-                ? "아직 등록된 책이 없습니다."
-                : "검색 결과가 없습니다."}
-            </TableCell>
+    <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
+      <Table>
+        <TableHeader>
+          <TableRow className="hover:bg-transparent">
+            <TableHead className="w-16">표지</TableHead>
+            <TableHead className="w-28">바코드</TableHead>
+            <TableHead>제목 / 저자</TableHead>
+            <TableHead>출판사</TableHead>
+            <TableHead>{LANGUAGE_LEVEL_TERM[language]}</TableHead>
+            <TableHead className="w-32 text-right">액션</TableHead>
           </TableRow>
-        ) : (
-          books.map((book) => (
-            <TableRow key={book.id}>
-              <TableCell>
-                <div
-                  className={cn(
-                    "flex h-14 w-10 items-center justify-center overflow-hidden rounded border text-[10px] font-semibold",
-                    language === "ko"
-                      ? "bg-ko text-ko-foreground"
-                      : "bg-en text-en-foreground",
-                  )}
-                >
-                  {book.cover_image_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={book.cover_image_url}
-                      alt={book.title}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    language.toUpperCase()
-                  )}
-                </div>
-              </TableCell>
-              <TableCell className="font-mono text-xs">{book.id}</TableCell>
-              <TableCell>
-                <div className="font-medium">{book.title}</div>
-                {book.author ? (
-                  <div className="text-xs text-muted-foreground">
-                    {book.author}
-                  </div>
-                ) : null}
-              </TableCell>
-              <TableCell className="text-sm text-muted-foreground">
-                {book.publisher ?? "—"}
-              </TableCell>
-              <TableCell>
-                {book.level ? (
-                  <Badge variant="secondary">{book.level}</Badge>
-                ) : (
-                  <span className="text-muted-foreground">—</span>
-                )}
-              </TableCell>
-              <TableCell className="text-right">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onEdit(book)}
-                  aria-label="수정"
-                >
-                  <Pencil className="size-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onDelete(book)}
-                  aria-label="삭제"
-                >
-                  <Trash2 className="size-4" />
-                </Button>
+        </TableHeader>
+        <TableBody>
+          {books.length === 0 ? (
+            <TableRow>
+              <TableCell
+                colSpan={6}
+                className="py-12 text-center text-muted-foreground"
+              >
+                {totalCount === 0
+                  ? "아직 등록된 책이 없습니다."
+                  : "검색 결과가 없습니다."}
               </TableCell>
             </TableRow>
-          ))
-        )}
-      </TableBody>
-    </Table>
+          ) : (
+            books.map((book) => (
+              <TableRow key={book.id}>
+                <TableCell>
+                  <div
+                    className={cn(
+                      "flex h-14 w-10 flex-col items-center justify-center gap-0.5 overflow-hidden rounded-md p-1 text-[8px] font-semibold leading-tight",
+                      language === "ko"
+                        ? "bg-ko text-ko-foreground"
+                        : "bg-en text-en-foreground",
+                    )}
+                  >
+                    {book.cover_image_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={book.cover_image_url}
+                        alt={book.title}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <>
+                        <span className="uppercase">
+                          {language.toUpperCase()}
+                        </span>
+                        <span className="line-clamp-2 text-center">
+                          {book.title}
+                        </span>
+                        {book.level ? (
+                          <span className="opacity-80">{book.level}</span>
+                        ) : null}
+                      </>
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell className="font-mono text-xs text-primary">
+                  {book.id}
+                </TableCell>
+                <TableCell>
+                  <div className="font-medium">{book.title}</div>
+                  {book.author ? (
+                    <div className="text-xs text-muted-foreground">
+                      {book.author}
+                    </div>
+                  ) : null}
+                </TableCell>
+                <TableCell className="text-sm text-muted-foreground">
+                  {book.publisher ?? "—"}
+                </TableCell>
+                <TableCell>
+                  {book.level ? (
+                    <Badge variant="secondary">{book.level}</Badge>
+                  ) : (
+                    <span className="text-muted-foreground">—</span>
+                  )}
+                </TableCell>
+                <TableCell className="text-right">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onEdit(book)}
+                    aria-label="수정"
+                  >
+                    <Pencil className="size-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onDelete(book)}
+                    aria-label="삭제"
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+    </div>
   );
 }

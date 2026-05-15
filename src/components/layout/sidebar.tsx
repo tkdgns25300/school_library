@@ -36,20 +36,23 @@ export function Sidebar({ email }: { email: string }) {
   const pathname = usePathname();
 
   return (
-    <aside className="flex h-screen w-60 flex-col border-r bg-sidebar text-sidebar-foreground">
-      <div className="flex h-16 items-center gap-3 border-b px-4">
-        <span className="rounded-md bg-primary px-2 py-1 text-xs font-semibold text-primary-foreground">
+    <aside className="flex h-screen w-60 flex-col bg-sidebar text-sidebar-foreground">
+      <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-4">
+        <span className="flex size-9 items-center justify-center rounded-md bg-sidebar-primary text-sm font-bold text-sidebar-primary-foreground">
           더힘
         </span>
         <div>
           <div className="text-sm font-semibold">School Library</div>
-          <div className="text-xs text-muted-foreground">더힘스쿨 수지점</div>
+          <div className="text-xs text-sidebar-foreground/60">
+            더힘스쿨 수지점
+          </div>
         </div>
       </div>
-      <nav className="flex flex-1 flex-col gap-5 px-3 py-4">
+
+      <nav className="flex flex-1 flex-col gap-6 px-3 py-5">
         {NAV_GROUPS.map((group) => (
           <div key={group.label}>
-            <div className="px-3 pb-1 text-xs font-medium text-muted-foreground">
+            <div className="px-3 pb-2 text-xs font-medium uppercase tracking-wider text-sidebar-foreground/50">
               {group.label}
             </div>
             <ul className="flex flex-col gap-1">
@@ -61,10 +64,10 @@ export function Sidebar({ email }: { email: string }) {
                     <Link
                       href={item.href}
                       className={cn(
-                        "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
+                        "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
                         isActive
-                          ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                          : "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                          ? "bg-sidebar-accent text-sidebar-accent-foreground ring-1 ring-inset ring-sidebar-primary/70"
+                          : "text-sidebar-foreground/90 hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
                       )}
                     >
                       <Icon className="size-4" />
@@ -77,15 +80,21 @@ export function Sidebar({ email }: { email: string }) {
           </div>
         ))}
       </nav>
-      <div className="border-t p-4">
-        <div className="text-xs">
-          <div className="font-medium">관리자 계정</div>
-          <div className="truncate text-muted-foreground">{email}</div>
+
+      <div className="border-t border-sidebar-border p-4">
+        <div className="flex items-center gap-3">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-sidebar-primary text-sm font-semibold text-sidebar-primary-foreground">
+            관
+          </span>
+          <div className="min-w-0 flex-1 text-xs">
+            <div className="font-medium">관리자 계정</div>
+            <div className="truncate text-sidebar-foreground/60">{email}</div>
+          </div>
         </div>
         <form action={signOut} className="mt-3">
           <button
             type="submit"
-            className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+            className="text-xs text-sidebar-foreground/60 transition-colors hover:text-sidebar-foreground"
           >
             로그아웃
           </button>

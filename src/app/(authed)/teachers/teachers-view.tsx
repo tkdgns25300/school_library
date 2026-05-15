@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Pencil, Trash2, Upload, UserPlus } from "lucide-react";
+import { Pencil, Search, Trash2, Upload, UserPlus } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -44,10 +44,10 @@ export function TeachersView({ teachers }: { teachers: Teacher[] }) {
 
   return (
     <>
-      <div className="mb-6 flex items-center justify-between gap-4">
+      <div className="mb-6 flex items-end justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold">교사 명단</h2>
-          <p className="text-sm text-muted-foreground">
+          <h2 className="text-2xl font-bold tracking-tight">교사 명단</h2>
+          <p className="mt-1.5 text-sm text-muted-foreground">
             대여·반납 처리 시 담당자로 선택됩니다 · 총 {teachers.length}명
           </p>
         </div>
@@ -63,63 +63,81 @@ export function TeachersView({ teachers }: { teachers: Teacher[] }) {
         </div>
       </div>
 
-      <Input
-        placeholder="이름으로 검색…"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="mb-4 max-w-sm"
-      />
+      <div className="space-y-4">
+        <div className="rounded-xl border bg-card p-4 shadow-sm">
+          <div className="relative max-w-sm">
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="이름으로 검색…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+        </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>이름</TableHead>
-            <TableHead>담당 반</TableHead>
-            <TableHead className="w-32 text-right">액션</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {filtered.length === 0 ? (
-            <TableRow>
-              <TableCell
-                colSpan={3}
-                className="text-center text-muted-foreground"
-              >
-                {teachers.length === 0
-                  ? "아직 등록된 교사가 없습니다."
-                  : "검색 결과가 없습니다."}
-              </TableCell>
-            </TableRow>
-          ) : (
-            filtered.map((teacher) => (
-              <TableRow key={teacher.id}>
-                <TableCell className="font-medium">{teacher.name}</TableCell>
-                <TableCell>
-                  <Badge variant="secondary">{teacher.class_section}</Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setFormDialog({ type: "edit", teacher })}
-                    aria-label="수정"
-                  >
-                    <Pencil className="size-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setDeleteTarget(teacher)}
-                    aria-label="삭제"
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
-                </TableCell>
+        <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead>이름</TableHead>
+                <TableHead>담당 반</TableHead>
+                <TableHead className="w-32 text-right">액션</TableHead>
               </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
+            </TableHeader>
+            <TableBody>
+              {filtered.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={3}
+                    className="py-12 text-center text-muted-foreground"
+                  >
+                    {teachers.length === 0
+                      ? "아직 등록된 교사가 없습니다."
+                      : "검색 결과가 없습니다."}
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filtered.map((teacher) => (
+                  <TableRow key={teacher.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <span className="flex size-9 items-center justify-center rounded-md bg-muted text-xs font-semibold text-muted-foreground">
+                          {teacher.name.slice(0, 1)}
+                        </span>
+                        <span className="font-medium">{teacher.name}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary">{teacher.class_section}</Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() =>
+                          setFormDialog({ type: "edit", teacher })
+                        }
+                        aria-label="수정"
+                      >
+                        <Pencil className="size-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setDeleteTarget(teacher)}
+                        aria-label="삭제"
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
 
       {formDialog ? (
         <TeacherFormDialog

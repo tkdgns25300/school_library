@@ -13,8 +13,8 @@ export default async function TeachersPage() {
   return (
     <>
       <PageHeader title="교사" subtitle="담당자 명단" />
-      <main className="flex-1 px-6 py-6">
-        <div className="mx-auto max-w-5xl">
+      <main className="flex-1 bg-muted/30 px-6 py-8">
+        <div className="mx-auto max-w-6xl">
           <TeachersView teachers={data ?? []} />
         </div>
       </main>

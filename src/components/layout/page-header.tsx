@@ -1,3 +1,5 @@
+import { Calendar } from "lucide-react";
+
 const TODAY_FORMATTER = new Intl.DateTimeFormat("ko-KR", {
   year: "numeric",
   month: "long",
@@ -15,14 +17,17 @@ export function PageHeader({
   const today = TODAY_FORMATTER.format(new Date());
 
   return (
-    <header className="flex h-16 items-center justify-between border-b px-6">
+    <header className="flex h-16 items-center justify-between border-b bg-background px-6">
       <div className="flex items-baseline gap-3">
-        <h1 className="text-lg font-semibold">{title}</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
         {subtitle ? (
           <p className="text-sm text-muted-foreground">{subtitle}</p>
         ) : null}
       </div>
-      <time className="text-sm text-muted-foreground">{today}</time>
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Calendar className="size-4" />
+        <time>{today}</time>
+      </div>
     </header>
   );
 }
