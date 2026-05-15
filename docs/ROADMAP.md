@@ -20,75 +20,82 @@
 - [x] `.env` 로컬 셋업 (gitignored — 복원 절차는 README)
 - [x] Vercel 연결 + 첫 배포 (Production = `main`)
 
-### 마무리 (남은 작업)
+### 마무리 (완료)
 
-Phase 1 진입 전제조건. 검증 기준: **로그인 후 빈 운영 페이지(반 카드 3개) 진입까지 동작**.
-
-- [ ] Supabase 클라이언트 — `src/lib/supabase/{client,server}.ts` (`@supabase/ssr`: 브라우저용 / 서버 컴포넌트·Server Actions용 / 미들웨어 세션 갱신 헬퍼)
-- [ ] DB 타입 — `src/types/database.ts` (Supabase MCP 또는 CLI 자동 생성)
-- [ ] 인증 미들웨어 — `src/middleware.ts` (비인증 시 `/login` 리다이렉트, 세션 자동 갱신)
-- [ ] 로그인 페이지 — `src/app/login/page.tsx` (이메일/비밀번호 폼)
-- [ ] 글로벌 레이아웃 — `src/app/layout.tsx` + `src/components/layout/` (사이드바 2그룹 "운영"·"관리" + 접기 토글, 헤더 페이지명·서브타이틀·우측 오늘 날짜, 관리자 계정 박스, 로그아웃)
+- [x] Supabase 클라이언트 — `src/lib/supabase/{server,session}.ts` (`@supabase/ssr`, server-only 정책)
+- [x] DB 타입 — `src/types/database.ts` (Supabase MCP 자동 생성)
+- [x] 인증 Proxy — `src/proxy.ts` (Next.js 16 `proxy.ts`, `middleware.ts` 대체)
+- [x] 로그인 페이지 — `src/app/login/page.tsx` + Server Action
+- [x] 글로벌 레이아웃 — `(authed)/layout.tsx` + 사이드바 2그룹 + 헤더 + 관리자 박스
 
 ## Phase 1: MVP — 5페이지
 
 > 각 페이지 동작은 SPEC.md 참조. 여기는 작업 단위 체크리스트.
 
-### 1-1. 공통 골격
+### 1-1. 공통 골격 (완료)
 
-- [ ] 도메인 타입 (`src/types/domain.ts`)
-- [ ] 정렬 헬퍼 (`src/lib/sort/`) — SPEC 정렬 규칙 표 구현
-- [ ] 컬러 토큰 (한국어=남색, 영어=초록) 상수화
+- [x] 도메인 타입 (`src/types/domain.ts`) — `ClassSection`·`Language`·`Grade`
+- [x] 정렬 헬퍼 (`src/lib/sort/students.ts`) — 학생 명단(학년→반→이름). 운영·대여 현황 정렬은 1-5/1-6에서 추가
+- [x] 컬러 토큰 (한국어=남색, 영어=초록) — `globals.css` `--ko`/`--en` + Tailwind 클래스
+- [x] 도메인 상수 — `src/constants/class-sections.ts`(CLASS_SECTIONS·CLASS_SECTION_ORDER·isValidGradeClassSection)·`languages.ts`
 
-### 1-2. 학생 명단 (SPEC: 학생 명단)
+### 1-2. 학생 명단 (완료)
 
-- [ ] 목록 (학년 ↑ → 반 → 이름)
-- [ ] 한국어 (대여/연체), 영어 (대여/연체) 컬럼 (집계 쿼리)
-- [ ] 검색·필터 (이름·학년·반)
-- [ ] 추가/수정/삭제 UI
-- [ ] CSV 업로드 + 검증 리포트
+- [x] 목록 (학년 ↑ → 반 → 이름)
+- [x] 한국어 (대여/연체), 영어 (대여/연체) 컬럼 — placeholder `—` (실제 join은 1-6에서)
+- [x] 검색·필터 (이름·학년·반)
+- [x] 추가/수정/삭제 UI (학년·반 복합 CHECK 자동 보정)
+- [x] CSV 업로드 + 검증 리포트
 
-### 1-3. 교사 명단 (SPEC: 교사 명단)
+### 1-3. 교사 명단 (완료)
 
-- [ ] 목록 (이름·담당 반)
-- [ ] 추가/수정/삭제 UI
-- [ ] CSV 업로드
+- [x] 목록 (이름·담당 반)
+- [x] 추가/수정/삭제 UI
+- [x] CSV 업로드
 
-### 1-4. 책 목록 (SPEC: 책 목록)
+### 1-4. 책 목록 (완료)
 
-- [ ] 한/영 탭 + 권수 표시
-- [ ] 상태 토글 (전체 / 대여 가능 / 대여 중)
-- [ ] 검색·필터 (제목·저자·단계, 단계 드롭다운)
-- [ ] 추가 폼 (자동 ID + 바코드 미리보기 + 표지 파일 업로드 → Storage)
-- [ ] 수정/삭제 UI (삭제 시 Storage 객체 정리)
-- [ ] CSV 업로드 (바코드 자동 발급)
-- [ ] 다중 선택 → A4 라벨 PDF 출력
+- [x] 한/영 탭 + 권수 표시 (underline tabs)
+- [x] 상태 토글 (전체 / 대여 가능 / 대여 중) — placeholder, 실제 join은 1-6에서
+- [x] 검색·필터 (제목·저자·단계)
+- [x] 추가 폼 (자동 ID + 표지 파일 업로드 → Storage)
+- [x] 수정/삭제 UI (삭제 시 Storage 객체 정리)
+- [x] CSV 업로드 (바코드 자동 발급)
+- [x] 다중 선택 → A4 라벨 PDF 출력 (24-up 격자, bwip-js Code128 + pdf-lib)
+- [x] 바코드 클릭 → 단일 미리보기 + 다운로드 dialog
 
-### 1-5. 운영 (SPEC: 운영)
+### 1-5. 운영 (다음)
 
-- [ ] 반 선택 화면 (카드 3개 + 학생·대여·연체 KPI)
-- [ ] 반별 운영 화면 — 상단 KPI + 한·영 1:1 두 칼럼
+- [ ] 반 카드 KPI 실제 데이터 (학생·대여 중·연체 count)
+- [ ] 반별 운영 화면 라우트 — `/operation/[section]`
+  - [ ] 상단 KPI + `← 반 선택` 복귀
+  - [ ] 한·영 1:1 두 칼럼
   - [ ] 칼럼 헤더 (권수·연체)
   - [ ] 대여/반납 모드 토글
-  - [ ] 학생 + 반납 예정일 + 담당 교사 선택
+  - [ ] 학생 + 반납 예정일(기본 7일) + 담당 교사 선택
   - [ ] 바코드 입력 (자동 포커스, 연속 스캔, 스캔 시 표지 미리보기)
-  - [ ] 잘못된 칸 안내 토스트
+  - [ ] 잘못된 칸 안내 토스트 (sonner)
   - [ ] 대여 중 리스트 (연체 먼저 → 학년 ↑ → 이름)
 - [ ] 활성 대여 없는 책 반납 시도 / 이미 대여 중인 책 대여 시도 경고
+- [ ] 사이드바/페이지 헤더에 sonner `<Toaster />` 추가
 
-### 1-6. 대여 현황 (SPEC: 대여 현황)
+### 1-6. 대여 현황 (이후)
 
+- [ ] `/loans` 라우트 (사이드바 "모니터링")
 - [ ] KPI 카드 3개 (전체 대여 중 / 연체 + 최장 일수 / 오늘 반납 예정)
 - [ ] 검색 (학생·책·바코드) + 언어 토글 + 반 드롭다운
 - [ ] 활성 대여 행 (책 표지 썸네일 + 학년·반·학생·책·언어·반납 예정·상태)
 - [ ] 정렬 (연체 먼저 → 학년 ↑ → 반납 예정일 ↑)
 - [ ] 행 클릭 → 대여 상세 모달 (반납 처리)
+- [ ] 학생 명단 (대여/연체) 컬럼 실제 데이터 join
+- [ ] 책 목록 상태 토글(전체/대여 가능/대여 중) 실제 데이터
 
 ## Phase 2: 운영 편의
 
 - [ ] 추세 통계 (인기 도서 Top N, 학년별 대여 빈도)
 - [ ] 학년 진급 일괄 처리 / 6학년 졸업 처리
 - [ ] 책·학생 일괄 작업
+- [ ] CSV Dialog / Delete Dialog 공통 컴포넌트 추출 (현재 3개 동일 구조)
 
 ## Phase 3: 선택
 
