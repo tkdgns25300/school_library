@@ -44,6 +44,9 @@ type FormDialog =
   | { type: "edit"; book: Book }
   | null;
 
+const TAB_TRIGGER_CLASS =
+  "flex-none rounded-none border-b-2 border-transparent bg-transparent px-4 py-2.5 text-sm font-medium text-muted-foreground shadow-none transition-colors data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none";
+
 export function BooksView({ books }: { books: Book[] }) {
   const [search, setSearch] = useState("");
   const [formDialog, setFormDialog] = useState<FormDialog>(null);
@@ -88,16 +91,10 @@ export function BooksView({ books }: { books: Book[] }) {
 
       <Tabs defaultValue="ko">
         <TabsList className="h-auto w-full justify-start rounded-none border-b bg-transparent p-0">
-          <TabsTrigger
-            value="ko"
-            className="rounded-none border-b-2 border-transparent bg-transparent px-4 py-2.5 text-sm font-medium text-muted-foreground shadow-none transition-colors data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none"
-          >
+          <TabsTrigger value="ko" className={TAB_TRIGGER_CLASS}>
             한국어 도서 · {koBooks.length}
           </TabsTrigger>
-          <TabsTrigger
-            value="en"
-            className="rounded-none border-b-2 border-transparent bg-transparent px-4 py-2.5 text-sm font-medium text-muted-foreground shadow-none transition-colors data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none"
-          >
+          <TabsTrigger value="en" className={TAB_TRIGGER_CLASS}>
             English Books · {enBooks.length}
           </TabsTrigger>
         </TabsList>
@@ -179,15 +176,15 @@ function BooksTable({
 }) {
   return (
     <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
-      <Table>
+      <Table className="table-fixed">
         <TableHeader>
           <TableRow className="hover:bg-transparent">
-            <TableHead className="w-16">표지</TableHead>
+            <TableHead className="w-20">표지</TableHead>
             <TableHead className="w-28">바코드</TableHead>
             <TableHead>제목 / 저자</TableHead>
-            <TableHead>출판사</TableHead>
-            <TableHead>{LANGUAGE_LEVEL_TERM[language]}</TableHead>
-            <TableHead className="w-32 text-right">액션</TableHead>
+            <TableHead className="w-40">출판사</TableHead>
+            <TableHead className="w-28">{LANGUAGE_LEVEL_TERM[language]}</TableHead>
+            <TableHead className="w-28 text-right">액션</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -236,18 +233,18 @@ function BooksTable({
                     )}
                   </div>
                 </TableCell>
-                <TableCell className="font-mono text-xs text-primary">
+                <TableCell className="truncate font-mono text-xs text-primary">
                   {book.id}
                 </TableCell>
                 <TableCell>
-                  <div className="font-medium">{book.title}</div>
+                  <div className="truncate font-medium">{book.title}</div>
                   {book.author ? (
-                    <div className="text-xs text-muted-foreground">
+                    <div className="truncate text-xs text-muted-foreground">
                       {book.author}
                     </div>
                   ) : null}
                 </TableCell>
-                <TableCell className="text-sm text-muted-foreground">
+                <TableCell className="truncate text-sm text-muted-foreground">
                   {book.publisher ?? "—"}
                 </TableCell>
                 <TableCell>

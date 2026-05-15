@@ -59,6 +59,11 @@ export function StudentsView({ students }: { students: Student[] }) {
     });
   }, [students, search, gradeFilter, sectionFilter]);
 
+  const gradeLabel =
+    gradeFilter === "all" ? "전체 학년" : `${gradeFilter}학년`;
+  const sectionLabel =
+    sectionFilter === "all" ? "전체 반" : sectionFilter;
+
   return (
     <>
       <div className="mb-6 flex items-end justify-between gap-4">
@@ -97,7 +102,7 @@ export function StudentsView({ students }: { students: Student[] }) {
               onValueChange={(v) => setGradeFilter(v ?? "all")}
             >
               <SelectTrigger className="w-36">
-                <SelectValue />
+                <SelectValue>{gradeLabel}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">전체 학년</SelectItem>
@@ -113,7 +118,7 @@ export function StudentsView({ students }: { students: Student[] }) {
               onValueChange={(v) => setSectionFilter(v ?? "all")}
             >
               <SelectTrigger className="w-36">
-                <SelectValue />
+                <SelectValue>{sectionLabel}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">전체 반</SelectItem>
@@ -128,15 +133,15 @@ export function StudentsView({ students }: { students: Student[] }) {
         </div>
 
         <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
-          <Table>
+          <Table className="table-fixed">
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead className="w-16">학년</TableHead>
-                <TableHead className="w-28">반</TableHead>
+                <TableHead className="w-20">학년</TableHead>
+                <TableHead className="w-32">반</TableHead>
                 <TableHead>이름</TableHead>
-                <TableHead>한국어 (대여 / 연체)</TableHead>
-                <TableHead>영어 (대여 / 연체)</TableHead>
-                <TableHead className="w-32 text-right">액션</TableHead>
+                <TableHead className="w-52">한국어 (대여 / 연체)</TableHead>
+                <TableHead className="w-52">영어 (대여 / 연체)</TableHead>
+                <TableHead className="w-28 text-right">액션</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -160,7 +165,9 @@ export function StudentsView({ students }: { students: Student[] }) {
                     <TableCell>
                       <Badge variant="secondary">{student.class_section}</Badge>
                     </TableCell>
-                    <TableCell className="font-medium">{student.name}</TableCell>
+                    <TableCell className="truncate font-medium">
+                      {student.name}
+                    </TableCell>
                     <TableCell className="text-muted-foreground">—</TableCell>
                     <TableCell className="text-muted-foreground">—</TableCell>
                     <TableCell className="text-right">

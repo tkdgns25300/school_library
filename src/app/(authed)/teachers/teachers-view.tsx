@@ -77,12 +77,12 @@ export function TeachersView({ teachers }: { teachers: Teacher[] }) {
         </div>
 
         <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
-          <Table>
+          <Table className="table-fixed">
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead>이름</TableHead>
-                <TableHead>담당 반</TableHead>
-                <TableHead className="w-32 text-right">액션</TableHead>
+                <TableHead className="w-48">담당 반</TableHead>
+                <TableHead className="w-28 text-right">액션</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -102,10 +102,12 @@ export function TeachersView({ teachers }: { teachers: Teacher[] }) {
                   <TableRow key={teacher.id}>
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <span className="flex size-9 items-center justify-center rounded-md bg-muted text-xs font-semibold text-muted-foreground">
+                        <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted text-xs font-semibold text-muted-foreground">
                           {teacher.name.slice(0, 1)}
                         </span>
-                        <span className="font-medium">{teacher.name}</span>
+                        <span className="truncate font-medium">
+                          {teacher.name}
+                        </span>
                       </div>
                     </TableCell>
                     <TableCell>
