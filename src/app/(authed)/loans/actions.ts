@@ -37,7 +37,6 @@ export async function returnLoanById(input: {
 
   if (error) return { error: "반납 처리에 실패했습니다." };
 
-  revalidatePath("/loans");
-  revalidatePath("/");
+  revalidatePath("/", "layout");
   return { ok: true };
 }

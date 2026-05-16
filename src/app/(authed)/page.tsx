@@ -3,6 +3,8 @@ import { ClassCard } from "./class-card";
 import { CLASS_SECTIONS } from "@/constants/class-sections";
 import { createClient } from "@/lib/supabase/server";
 
+export const revalidate = 1800;
+
 type ClassStats = {
   studentCount: number;
   activeCount: number;

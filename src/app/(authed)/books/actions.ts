@@ -154,7 +154,7 @@ export async function createBook(
       .eq("id", id);
   }
 
-  revalidatePath("/books");
+  revalidatePath("/", "layout");
   return { ok: true };
 }
 
@@ -197,7 +197,7 @@ export async function updateBook(
     return { error: "책 수정에 실패했습니다." };
   }
 
-  revalidatePath("/books");
+  revalidatePath("/", "layout");
   return { ok: true };
 }
 
@@ -229,7 +229,7 @@ export async function removeBook(
     `${id}.gif`,
   ]);
 
-  revalidatePath("/books");
+  revalidatePath("/", "layout");
   return { ok: true };
 }
 
@@ -325,7 +325,7 @@ export async function importBooksCsv(
     results.push({ row: rowNumber, title });
   }
 
-  revalidatePath("/books");
+  revalidatePath("/", "layout");
   const successCount = results.filter((r) => !r.error).length;
   return { results, successCount };
 }

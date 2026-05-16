@@ -19,9 +19,8 @@ export type ScanResult = {
   book?: ScannedBook;
 };
 
-function revalidate(section: ClassSection): void {
-  revalidatePath(`/operation/${encodeURIComponent(section)}`);
-  revalidatePath("/");
+function revalidate(_section: ClassSection): void {
+  revalidatePath("/", "layout");
 }
 
 export async function lendBook(input: {

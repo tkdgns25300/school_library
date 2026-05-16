@@ -56,7 +56,7 @@ export async function createTeacher(
     return { error: "교사 등록에 실패했습니다." };
   }
 
-  revalidatePath("/teachers");
+  revalidatePath("/", "layout");
   return { ok: true };
 }
 
@@ -88,7 +88,7 @@ export async function updateTeacher(
     return { error: "교사 수정에 실패했습니다." };
   }
 
-  revalidatePath("/teachers");
+  revalidatePath("/", "layout");
   return { ok: true };
 }
 
@@ -111,7 +111,7 @@ export async function removeTeacher(
     return { error: "교사 삭제에 실패했습니다." };
   }
 
-  revalidatePath("/teachers");
+  revalidatePath("/", "layout");
   return { ok: true };
 }
 
@@ -186,7 +186,7 @@ export async function importTeachersCsv(
     results.push({ row: rowNumber, name });
   }
 
-  revalidatePath("/teachers");
+  revalidatePath("/", "layout");
   const successCount = results.filter((r) => !r.error).length;
   return { results, successCount };
 }

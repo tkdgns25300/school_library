@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 
 import { TeachersView } from "./teachers-view";
 
+export const revalidate = 1800;
+
 export default async function TeachersPage() {
   const supabase = await createClient();
   const { data } = await supabase

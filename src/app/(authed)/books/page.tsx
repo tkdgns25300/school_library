@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 
 import { BooksView, type BookWithStatus } from "./books-view";
 
+export const revalidate = 1800;
+
 export default async function BooksPage() {
   const supabase = await createClient();
 

@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 
 import { LoansView, type LoanRow } from "./loans-view";
 
+export const revalidate = 1800;
+
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
 }
