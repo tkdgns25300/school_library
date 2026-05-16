@@ -16,6 +16,7 @@
   --color-sidebar-accent: var(--sidebar-accent);
   --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-badge: var(--sidebar-badge);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar: var(--sidebar);
   --color-chart-5: var(--chart-5);
@@ -80,12 +81,13 @@
   /* Sidebar — 더 진한 다크 navy + indigo 톤 (light/dark 모드 무관, 시안 디자인) */
   --sidebar: oklch(0.18 0.06 265);
   --sidebar-foreground: oklch(0.95 0.005 250);
-  --sidebar-primary: oklch(0.55 0.23 270);
+  --sidebar-primary: oklch(0.34 0.11 265);
   --sidebar-primary-foreground: oklch(0.98 0 0);
   --sidebar-accent: oklch(0.26 0.06 265);
   --sidebar-accent-foreground: oklch(0.97 0.005 250);
   --sidebar-border: oklch(0.28 0.05 265);
   --sidebar-ring: oklch(0.6 0.18 265);
+  --sidebar-badge: oklch(0.30 0.08 265);
   --ko: oklch(0.35 0.12 270);
   --ko-foreground: oklch(0.98 0 0);
   --en: oklch(0.5 0.13 150);
@@ -119,12 +121,13 @@
   /* Sidebar — 동일 (다크 모드 무관) */
   --sidebar: oklch(0.18 0.06 265);
   --sidebar-foreground: oklch(0.95 0.005 250);
-  --sidebar-primary: oklch(0.55 0.23 270);
+  --sidebar-primary: oklch(0.34 0.11 265);
   --sidebar-primary-foreground: oklch(0.98 0 0);
   --sidebar-accent: oklch(0.26 0.06 265);
   --sidebar-accent-foreground: oklch(0.97 0.005 250);
   --sidebar-border: oklch(0.28 0.05 265);
   --sidebar-ring: oklch(0.6 0.18 265);
+  --sidebar-badge: oklch(0.30 0.08 265);
   --ko: oklch(0.6 0.18 270);
   --ko-foreground: oklch(0.15 0 0);
   --en: oklch(0.6 0.18 150);

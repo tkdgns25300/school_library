@@ -64,7 +64,7 @@ export function Sidebar({ email }: { email: string }) {
       )}
     >
       <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-4">
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-sidebar-primary text-sm font-bold text-sidebar-primary-foreground">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-sidebar-badge text-sm font-bold text-sidebar-primary-foreground">
           더힘
         </span>
         {!collapsed ? (
@@ -116,7 +116,7 @@ export function Sidebar({ email }: { email: string }) {
       <div className="border-t border-sidebar-border p-3">
         {!collapsed ? (
           <div className="flex items-center gap-3 px-1">
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-sidebar-primary text-sm font-semibold text-sidebar-primary-foreground">
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-sidebar-badge text-sm font-semibold text-sidebar-primary-foreground">
               관
             </span>
             <div className="min-w-0 flex-1 text-xs">
