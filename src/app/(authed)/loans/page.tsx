@@ -1,14 +1,18 @@
+"use cache";
+
+import { cacheLife, cacheTag } from "next/cache";
+
 import { PageHeader } from "@/components/layout/page-header";
 import { getLoansForMonitoring } from "@/lib/queries/loans";
 
 import { LoansView } from "./loans-view";
 
-function todayIso(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
 export default async function LoansPage() {
-  const data = await getLoansForMonitoring(todayIso());
+  cacheTag("loans", "students", "books", "teachers");
+  cacheLife({ revalidate: 1800 });
+
+  const today = new Date().toISOString().slice(0, 10);
+  const data = await getLoansForMonitoring(today);
 
   return (
     <>

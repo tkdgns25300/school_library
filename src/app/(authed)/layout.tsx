@@ -1,22 +1,20 @@
-import { createClient } from "@/lib/supabase/server";
+import { Suspense } from "react";
+
 import { Sidebar } from "@/components/layout/sidebar";
 import { Toaster } from "@/components/ui/sonner";
 
 export const preferredRegion = ["icn1"];
 
-export default async function AuthedLayout({
+export default function AuthedLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
   return (
     <div className="flex min-h-screen bg-background">
-      <Sidebar email={user?.email ?? "관리자"} />
+      <Suspense>
+        <Sidebar email="관리자" />
+      </Suspense>
       <div className="flex flex-1 flex-col">{children}</div>
       <Toaster />
     </div>

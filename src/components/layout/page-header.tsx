@@ -1,11 +1,6 @@
 import { Calendar } from "lucide-react";
 
-const TODAY_FORMATTER = new Intl.DateTimeFormat("ko-KR", {
-  year: "numeric",
-  month: "long",
-  day: "numeric",
-  weekday: "short",
-});
+import { TodayDate } from "./today-date";
 
 export function PageHeader({
   title,
@@ -14,8 +9,6 @@ export function PageHeader({
   title: string;
   subtitle?: string;
 }) {
-  const today = TODAY_FORMATTER.format(new Date());
-
   return (
     <header className="flex h-16 items-center justify-between border-b bg-background px-6">
       <div className="flex items-baseline gap-3">
@@ -26,7 +19,7 @@ export function PageHeader({
       </div>
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Calendar className="size-4" />
-        <time>{today}</time>
+        <TodayDate />
       </div>
     </header>
   );

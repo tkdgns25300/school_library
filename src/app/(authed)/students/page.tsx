@@ -1,14 +1,18 @@
+"use cache";
+
+import { cacheLife, cacheTag } from "next/cache";
+
 import { PageHeader } from "@/components/layout/page-header";
 import { getStudentsWithStats } from "@/lib/queries/students";
 
 import { StudentsView } from "./students-view";
 
-function todayIso(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
 export default async function StudentsPage() {
-  const students = await getStudentsWithStats(todayIso());
+  cacheTag("students", "loans", "books");
+  cacheLife({ revalidate: 1800 });
+
+  const today = new Date().toISOString().slice(0, 10);
+  const students = await getStudentsWithStats(today);
 
   return (
     <>

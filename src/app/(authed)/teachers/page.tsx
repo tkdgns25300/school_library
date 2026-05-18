@@ -1,9 +1,16 @@
+"use cache";
+
+import { cacheLife, cacheTag } from "next/cache";
+
 import { PageHeader } from "@/components/layout/page-header";
 import { getTeachers } from "@/lib/queries/teachers";
 
 import { TeachersView } from "./teachers-view";
 
 export default async function TeachersPage() {
+  cacheTag("teachers");
+  cacheLife({ revalidate: 1800 });
+
   const teachers = await getTeachers();
 
   return (
