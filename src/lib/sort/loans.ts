@@ -1,11 +1,9 @@
+import { todayIso } from "@/lib/date";
+
 type ActiveLoanLike = {
   due_date: string;
   student: { grade: number; name: string };
 };
-
-function todayIso(): string {
-  return new Date().toISOString().slice(0, 10);
-}
 
 // 대여 데스크 — 대여 중 리스트: 연체 먼저 → 학년 ↑ → 이름
 export function sortActiveLoansForOperation<T extends ActiveLoanLike>(
