@@ -33,14 +33,12 @@ import { downloadLabelsPdf } from "@/lib/download-labels";
 import { cn } from "@/lib/utils";
 import type { Language } from "@/types/domain";
 
+import type { BookWithStatus } from "@/lib/queries/books";
+
 import { BookBarcodeDialog } from "./book-barcode-dialog";
 import { BookDeleteDialog } from "./book-delete-dialog";
 import { BookFormDialog } from "./book-form-dialog";
 import { BooksCsvDialog } from "./books-csv-dialog";
-
-import type { BookWithStatus } from "@/lib/queries/books";
-
-export type { BookWithStatus };
 
 type FormDialog =
   | { type: "create" }

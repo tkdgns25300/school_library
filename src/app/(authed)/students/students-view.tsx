@@ -24,13 +24,11 @@ import {
 import { CLASS_SECTIONS } from "@/constants/class-sections";
 import { GRADES } from "@/types/domain";
 
+import type { StudentWithStats } from "@/lib/queries/students";
+
 import { StudentDeleteDialog } from "./student-delete-dialog";
 import { StudentFormDialog } from "./student-form-dialog";
 import { StudentsCsvDialog } from "./students-csv-dialog";
-
-import type { StudentWithStats } from "@/lib/queries/students";
-
-export type { StudentWithStats };
 
 type FormDialog =
   | { type: "create" }

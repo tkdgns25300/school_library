@@ -3,16 +3,16 @@
 import { cacheLife, cacheTag } from "next/cache";
 
 import { PageHeader } from "@/components/layout/page-header";
+import { todayIso } from "@/lib/date";
 import { getStudentsWithStats } from "@/lib/queries/students";
 
 import { StudentsView } from "./students-view";
 
 export default async function StudentsPage() {
   cacheTag("students", "loans", "books");
-  cacheLife({ revalidate: 1800 });
+  cacheLife("days");
 
-  const today = new Date().toISOString().slice(0, 10);
-  const students = await getStudentsWithStats(today);
+  const students = await getStudentsWithStats(todayIso());
 
   return (
     <>

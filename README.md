@@ -6,9 +6,10 @@
 
 Next.js 16 (App Router) · React 19 · TypeScript strict · Tailwind v4 + shadcn/ui (Base UI) · Supabase · Vercel
 
-## Pages (5)
+## Pages
 
-- `/` 운영 (반 선택 → 한·영 1:1 칼럼, 대여·반납·연속 스캔)
+- `/` 대여 데스크 (반 카드 → 반별 운영 화면 진입)
+- `/operation/[section]` 반별 대여 데스크 (한·영 1:1 칼럼, 대여·반납·연속 스캔)
 - `/loans` 대여 현황 (회수 우선순위 액션 목록, 한·영 구분)
 - `/students` 학생 명단
 - `/teachers` 교사 명단
@@ -18,10 +19,11 @@ Next.js 16 (App Router) · React 19 · TypeScript strict · Tailwind v4 + shadcn
 
 읽는 순서:
 
-1. [`CLAUDE.md`](./CLAUDE.md) — **HOW**. 코딩 컨벤션·아키텍처·도메인 룰
+1. [`CLAUDE.md`](./CLAUDE.md) — **HOW**. 아키텍처·캐싱 전략·코딩 컨벤션·도메인 룰
 2. [`docs/SPEC.md`](./docs/SPEC.md) — **WHAT**. 페이지·기능 명세
 3. [`docs/SCHEMA.md`](./docs/SCHEMA.md) — **DATA**. DB 스키마·Storage·CSV·SQL 패턴
 4. [`docs/ROADMAP.md`](./docs/ROADMAP.md) — **TODO**. Phase별 체크리스트와 진행 상황
+5. [`docs/SNAPSHOT.md`](./docs/SNAPSHOT.md) — **현재 상태**. 시점 핸드오프 (재개 시 첫 참조)
 
 ## Local Setup
 
@@ -41,12 +43,13 @@ npm run dev
 
 | 항목 | 값 |
 |---|---|
-| Supabase project ref | `lwjzyuxjwdeolmsmmmhi` |
-| Supabase URL | `https://lwjzyuxjwdeolmsmmmhi.supabase.co` |
+| Supabase project ref | `sxlxetjqhaszbzvxfcwu` (region `ap-northeast-2` Seoul) |
+| Supabase URL | `https://sxlxetjqhaszbzvxfcwu.supabase.co` |
 | GitHub repo | `https://github.com/tkdgns25300/school_library` |
-| Vercel project | `school_library` (production = `main`) |
+| Vercel project | `school_library` (production = `main`, function region `icn1`) |
 | Admin 계정 | `admin@thehim.school` (비번은 별도 보관) |
 | Storage 버킷 | `book-covers` (public read, authenticated write) |
+| Vercel Cron | `/api/cron/midnight` 매일 KST 00:00 (UTC 15:00) — `CRON_SECRET` 필수 |
 
 ### 환경 변수
 
@@ -58,11 +61,14 @@ npm run dev
 필수 키 (`.env.example` 참조):
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=https://lwjzyuxjwdeolmsmmmhi.supabase.co
+NEXT_PUBLIC_SUPABASE_URL=https://sxlxetjqhaszbzvxfcwu.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon JWT>
 SUPABASE_SERVICE_ROLE_KEY=<service_role JWT>
 ADMIN_EMAIL=admin@thehim.school
+CRON_SECRET=<랜덤 시크릿 — Vercel Dashboard에도 동일 값 설정>
 ```
+
+**`CRON_SECRET` 발급**: `openssl rand -base64 32` 또는 임의 긴 문자열. Vercel Cron이 `/api/cron/midnight` 호출 시 `Authorization: Bearer <secret>`로 검증한다. **반드시 Vercel Dashboard → Project Settings → Environment Variables 에 동일 값 설정**.
 
 ## Supabase MCP (선택)
 
@@ -72,7 +78,7 @@ AI가 DB·Storage를 직접 조작할 수 있게 하는 MCP 서버. 새 PC마다
 2. **MCP 서버 등록** (터미널에서):
    ```bash
    claude mcp add supabase -s user -- npx -y @supabase/mcp-server-supabase@latest \
-     --project-ref=lwjzyuxjwdeolmsmmmhi \
+     --project-ref=sxlxetjqhaszbzvxfcwu \
      --access-token=YOUR_PAT
    ```
    - `YOUR_PAT`만 본인 PAT로 치환

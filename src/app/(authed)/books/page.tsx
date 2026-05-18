@@ -9,7 +9,7 @@ import { BooksView } from "./books-view";
 
 export default async function BooksPage() {
   cacheTag("books", "loans");
-  cacheLife({ revalidate: 1800 });
+  cacheLife("days");
 
   const books = await getBooksWithStatus();
 

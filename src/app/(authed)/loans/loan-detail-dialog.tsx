@@ -21,18 +21,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { todayIso } from "@/lib/date";
+import type { LoanRow } from "@/lib/queries/loans";
 import { cn } from "@/lib/utils";
 import type { Language } from "@/types/domain";
-
-import type { LoanRow } from "@/lib/queries/loans";
 
 import { returnLoanById } from "./actions";
 
 type Teacher = { id: string; name: string };
-
-function todayIso(): string {
-  return new Date().toISOString().slice(0, 10);
-}
 
 export function LoanDetailDialog({
   loan,

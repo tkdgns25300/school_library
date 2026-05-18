@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { LANGUAGE_LABEL } from "@/constants/languages";
+import { todayIso } from "@/lib/date";
 import { cn } from "@/lib/utils";
 import type { ClassSection, Language } from "@/types/domain";
 
@@ -33,10 +34,6 @@ import type { ActiveLoan, Student, Teacher } from "./operation-view";
 const DEFAULT_DUE_DAYS = 7;
 
 type Mode = "lend" | "return";
-
-function todayIso(): string {
-  return new Date().toISOString().slice(0, 10);
-}
 
 function overdueDays(dueDate: string): number {
   const today = new Date();

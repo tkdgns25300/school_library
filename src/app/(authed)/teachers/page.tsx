@@ -9,7 +9,7 @@ import { TeachersView } from "./teachers-view";
 
 export default async function TeachersPage() {
   cacheTag("teachers");
-  cacheLife({ revalidate: 1800 });
+  cacheLife("days");
 
   const teachers = await getTeachers();
 

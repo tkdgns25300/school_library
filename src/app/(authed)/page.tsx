@@ -4,16 +4,16 @@ import { cacheLife, cacheTag } from "next/cache";
 
 import { PageHeader } from "@/components/layout/page-header";
 import { CLASS_SECTIONS } from "@/constants/class-sections";
+import { todayIso } from "@/lib/date";
 import { getClassStats } from "@/lib/queries/home";
 
 import { ClassCard } from "./class-card";
 
 export default async function OperationHomePage() {
   cacheTag("students", "loans");
-  cacheLife({ revalidate: 1800 });
+  cacheLife("days");
 
-  const today = new Date().toISOString().slice(0, 10);
-  const statsBySection = await getClassStats(today);
+  const statsBySection = await getClassStats(todayIso());
 
   return (
     <>

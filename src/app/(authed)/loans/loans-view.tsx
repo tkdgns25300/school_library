@@ -23,20 +23,14 @@ import {
 } from "@/components/ui/table";
 import { CLASS_SECTIONS } from "@/constants/class-sections";
 import { LANGUAGE_LABEL } from "@/constants/languages";
+import { todayIso } from "@/lib/date";
+import type { LoanRow } from "@/lib/queries/loans";
 import { cn } from "@/lib/utils";
 import type { Language } from "@/types/domain";
 
 import { LoanDetailDialog } from "./loan-detail-dialog";
 
-import type { LoanRow } from "@/lib/queries/loans";
-
-export type { LoanRow };
-
 type Teacher = { id: string; name: string };
-
-function todayIso(): string {
-  return new Date().toISOString().slice(0, 10);
-}
 
 function overdueDays(dueDate: string): number {
   const today = todayIso();
