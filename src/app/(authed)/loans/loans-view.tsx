@@ -28,24 +28,9 @@ import type { Language } from "@/types/domain";
 
 import { LoanDetailDialog } from "./loan-detail-dialog";
 
-export type LoanRow = {
-  id: string;
-  loaned_at: string;
-  due_date: string;
-  student: {
-    id: string;
-    name: string;
-    grade: number;
-    class_section: string;
-  };
-  book: {
-    id: string;
-    title: string;
-    author: string | null;
-    language: string;
-    cover_image_url: string | null;
-  };
-};
+import type { LoanRow } from "@/lib/queries/loans";
+
+export type { LoanRow };
 
 type Teacher = { id: string; name: string };
 

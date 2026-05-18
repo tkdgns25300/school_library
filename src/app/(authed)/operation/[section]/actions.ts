@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { updateTag } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
 import type { ClassSection, Language } from "@/types/domain";
@@ -18,10 +18,6 @@ export type ScanResult = {
   error?: string;
   book?: ScannedBook;
 };
-
-function revalidate(_section: ClassSection): void {
-  revalidatePath("/", "layout");
-}
 
 export async function lendBook(input: {
   section: ClassSection;
@@ -77,7 +73,7 @@ export async function lendBook(input: {
     return { error: "대여 처리에 실패했습니다." };
   }
 
-  revalidate(input.section);
+  updateTag("loans");
   return { book };
 }
 
@@ -141,6 +137,6 @@ export async function returnBook(input: {
 
   if (error) return { error: "반납 처리에 실패했습니다." };
 
-  revalidate(input.section);
+  updateTag("loans");
   return { book };
 }

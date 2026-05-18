@@ -28,16 +28,9 @@ import { StudentDeleteDialog } from "./student-delete-dialog";
 import { StudentFormDialog } from "./student-form-dialog";
 import { StudentsCsvDialog } from "./students-csv-dialog";
 
-export type StudentWithStats = {
-  id: string;
-  name: string;
-  grade: number;
-  class_section: string;
-  koActive: number;
-  koOverdue: number;
-  enActive: number;
-  enOverdue: number;
-};
+import type { StudentWithStats } from "@/lib/queries/students";
+
+export type { StudentWithStats };
 
 type FormDialog =
   | { type: "create" }

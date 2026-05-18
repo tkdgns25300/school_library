@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { updateTag } from "next/cache";
 import Papa from "papaparse";
 
 import { createClient } from "@/lib/supabase/server";
@@ -56,7 +56,7 @@ export async function createTeacher(
     return { error: "교사 등록에 실패했습니다." };
   }
 
-  revalidatePath("/", "layout");
+  updateTag("teachers");
   return { ok: true };
 }
 
@@ -88,7 +88,7 @@ export async function updateTeacher(
     return { error: "교사 수정에 실패했습니다." };
   }
 
-  revalidatePath("/", "layout");
+  updateTag("teachers");
   return { ok: true };
 }
 
@@ -111,7 +111,7 @@ export async function removeTeacher(
     return { error: "교사 삭제에 실패했습니다." };
   }
 
-  revalidatePath("/", "layout");
+  updateTag("teachers");
   return { ok: true };
 }
 
@@ -186,7 +186,7 @@ export async function importTeachersCsv(
     results.push({ row: rowNumber, name });
   }
 
-  revalidatePath("/", "layout");
+  updateTag("teachers");
   const successCount = results.filter((r) => !r.error).length;
   return { results, successCount };
 }

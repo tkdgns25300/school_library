@@ -24,8 +24,9 @@ import {
 import { cn } from "@/lib/utils";
 import type { Language } from "@/types/domain";
 
+import type { LoanRow } from "@/lib/queries/loans";
+
 import { returnLoanById } from "./actions";
-import type { LoanRow } from "./loans-view";
 
 type Teacher = { id: string; name: string };
 

@@ -38,17 +38,9 @@ import { BookDeleteDialog } from "./book-delete-dialog";
 import { BookFormDialog } from "./book-form-dialog";
 import { BooksCsvDialog } from "./books-csv-dialog";
 
-export type BookWithStatus = {
-  id: string;
-  title: string;
-  author: string | null;
-  publisher: string | null;
-  grade_level: number | null;
-  language: string;
-  level: string | null;
-  cover_image_url: string | null;
-  isActive: boolean;
-};
+import type { BookWithStatus } from "@/lib/queries/books";
+
+export type { BookWithStatus };
 
 type FormDialog =
   | { type: "create" }

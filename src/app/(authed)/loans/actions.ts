@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { updateTag } from "next/cache";
 
 import { createClient } from "@/lib/supabase/server";
 
@@ -37,6 +37,6 @@ export async function returnLoanById(input: {
 
   if (error) return { error: "반납 처리에 실패했습니다." };
 
-  revalidatePath("/", "layout");
+  updateTag("loans");
   return { ok: true };
 }

@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { updateTag } from "next/cache";
 import Papa from "papaparse";
 
 import {
@@ -78,7 +78,7 @@ export async function createStudent(
     return { error: "학생 등록에 실패했습니다." };
   }
 
-  revalidatePath("/", "layout");
+  updateTag("students");
   return { ok: true };
 }
 
@@ -109,7 +109,7 @@ export async function updateStudent(
     return { error: "학생 수정에 실패했습니다." };
   }
 
-  revalidatePath("/", "layout");
+  updateTag("students");
   return { ok: true };
 }
 
@@ -134,7 +134,7 @@ export async function removeStudent(
     return { error: "학생 삭제에 실패했습니다." };
   }
 
-  revalidatePath("/", "layout");
+  updateTag("students");
   return { ok: true };
 }
 
@@ -219,7 +219,7 @@ export async function importStudentsCsv(
     results.push({ row: rowNumber, name });
   }
 
-  revalidatePath("/", "layout");
+  updateTag("students");
   const successCount = results.filter((r) => !r.error).length;
   return { results, successCount };
 }

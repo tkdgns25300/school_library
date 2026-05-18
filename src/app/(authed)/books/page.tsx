@@ -1,34 +1,10 @@
 import { PageHeader } from "@/components/layout/page-header";
-import { createClient } from "@/lib/supabase/server";
+import { getBooksWithStatus } from "@/lib/queries/books";
 
-import { BooksView, type BookWithStatus } from "./books-view";
-
-export const revalidate = 1800;
+import { BooksView } from "./books-view";
 
 export default async function BooksPage() {
-  const supabase = await createClient();
-
-  const [booksRes, loansRes] = await Promise.all([
-    supabase
-      .from("books")
-      .select(
-        "id, title, author, publisher, grade_level, language, level, cover_image_url",
-      )
-      .order("id"),
-    supabase
-      .from("loans")
-      .select("book_id")
-      .is("returned_at", null),
-  ]);
-
-  const activeBookIds = new Set(
-    (loansRes.data ?? []).map((l) => l.book_id),
-  );
-
-  const books: BookWithStatus[] = (booksRes.data ?? []).map((b) => ({
-    ...b,
-    isActive: activeBookIds.has(b.id),
-  }));
+  const books = await getBooksWithStatus();
 
   return (
     <>

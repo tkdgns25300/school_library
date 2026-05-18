@@ -1,43 +1,15 @@
 import { PageHeader } from "@/components/layout/page-header";
-import { ClassCard } from "./class-card";
 import { CLASS_SECTIONS } from "@/constants/class-sections";
-import { createClient } from "@/lib/supabase/server";
+import { getClassStats } from "@/lib/queries/home";
 
-export const revalidate = 1800;
+import { ClassCard } from "./class-card";
 
-type ClassStats = {
-  studentCount: number;
-  activeCount: number;
-  overdueCount: number;
-};
+function todayIso(): string {
+  return new Date().toISOString().slice(0, 10);
+}
 
 export default async function OperationHomePage() {
-  const supabase = await createClient();
-
-  const [studentsRes, loansRes] = await Promise.all([
-    supabase.from("students").select("id, class_section"),
-    supabase
-      .from("loans")
-      .select("student_id, due_date")
-      .is("returned_at", null),
-  ]);
-
-  const students = studentsRes.data ?? [];
-  const loans = loansRes.data ?? [];
-  const today = new Date().toISOString().slice(0, 10);
-
-  const statsBySection = new Map<string, ClassStats>();
-  for (const section of CLASS_SECTIONS) {
-    const studentIds = new Set(
-      students.filter((s) => s.class_section === section.id).map((s) => s.id),
-    );
-    const sectionLoans = loans.filter((l) => studentIds.has(l.student_id));
-    statsBySection.set(section.id, {
-      studentCount: studentIds.size,
-      activeCount: sectionLoans.length,
-      overdueCount: sectionLoans.filter((l) => l.due_date < today).length,
-    });
-  }
+  const statsBySection = await getClassStats(todayIso());
 
   return (
     <>
@@ -57,7 +29,7 @@ export default async function OperationHomePage() {
           </header>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             {CLASS_SECTIONS.map((section) => {
-              const stats = statsBySection.get(section.id);
+              const stats = statsBySection[section.id];
               return (
                 <ClassCard
                   key={section.id}
