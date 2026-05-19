@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { format } from "date-fns";
 import { Barcode, Calendar as CalendarIcon, ScanLine, X } from "lucide-react";
 import { toast } from "sonner";
@@ -24,6 +24,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { CLASS_SECTIONS } from "@/constants/class-sections";
 import { LANGUAGE_LABEL } from "@/constants/languages";
 import { todayIso } from "@/lib/date";
 import type { ActiveLoan, Student } from "@/lib/queries/operation";
@@ -56,8 +57,28 @@ export function LanguageColumn({
   students: Student[];
   loans: ActiveLoan[];
 }) {
+  const sectionGrades = useMemo(
+    () => CLASS_SECTIONS.find((s) => s.id === section)?.grades ?? [],
+    [section],
+  );
+
   const [mode, setMode] = useState<Mode>("lend");
   const [student, setStudent] = useState<Student | null>(null);
+  const [gradeFilter, setGradeFilter] = useState<number | "all">("all");
+
+  const filteredStudents = useMemo(() => {
+    if (gradeFilter === "all") return students;
+    return students.filter((s) => s.grade === gradeFilter);
+  }, [students, gradeFilter]);
+
+  function handleGradeChange(value: number | "all") {
+    setGradeFilter(value);
+    // Selected student may no longer match the new filter — clear it so the
+    // operator picks again from the narrowed list.
+    if (value !== "all" && student && student.grade !== value) {
+      setStudent(null);
+    }
+  }
   const [dueDate, setDueDate] = useState<Date>(() => {
     const d = new Date();
     d.setDate(d.getDate() + DEFAULT_DUE_DAYS);
@@ -229,9 +250,20 @@ export function LanguageColumn({
         <ModeToggle mode={mode} onChange={setMode} language={language} />
 
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-          <SelectField label="학생">
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between gap-2">
+              <Label className="text-xs font-medium text-muted-foreground">
+                학생
+              </Label>
+              <GradeFilter
+                grades={sectionGrades}
+                value={gradeFilter}
+                onChange={handleGradeChange}
+                language={language}
+              />
+            </div>
             <Combobox
-              items={students}
+              items={filteredStudents}
               itemToStringLabel={(s: Student) => `${s.grade}학년 ${s.name}`}
               value={student}
               onValueChange={(s) => setStudent(s as Student | null)}
@@ -251,7 +283,7 @@ export function LanguageColumn({
                 </ComboboxList>
               </ComboboxContent>
             </Combobox>
-          </SelectField>
+          </div>
 
           {mode === "lend" ? (
             <SelectField label="반납 예정일">
@@ -511,6 +543,47 @@ function SelectField({
         {label}
       </Label>
       {children}
+    </div>
+  );
+}
+
+function GradeFilter({
+  grades,
+  value,
+  onChange,
+  language,
+}: {
+  grades: ReadonlyArray<number>;
+  value: number | "all";
+  onChange: (value: number | "all") => void;
+  language: Language;
+}) {
+  const activeFilled =
+    language === "ko"
+      ? "bg-ko text-ko-foreground"
+      : "bg-en text-en-foreground";
+  const options: ReadonlyArray<{ v: number | "all"; label: string }> = [
+    { v: "all", label: "전체" },
+    ...grades.map((g) => ({ v: g, label: `${g}` })),
+  ];
+  return (
+    <div className="inline-flex overflow-hidden rounded-md border bg-card">
+      {options.map(({ v, label }, idx) => (
+        <button
+          key={String(v)}
+          type="button"
+          onClick={() => onChange(v)}
+          className={cn(
+            "min-w-7 px-2 py-0.5 text-[11px] font-medium transition-colors",
+            idx > 0 && "border-l",
+            value === v
+              ? activeFilled
+              : "text-muted-foreground hover:bg-muted/60",
+          )}
+        >
+          {label}
+        </button>
+      ))}
     </div>
   );
 }
