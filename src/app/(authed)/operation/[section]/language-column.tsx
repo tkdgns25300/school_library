@@ -25,6 +25,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { LANGUAGE_LABEL } from "@/constants/languages";
+import { normalizeBarcodeInput } from "@/lib/barcode";
 import { todayIso } from "@/lib/date";
 import type { ActiveLoan, Student, Teacher } from "@/lib/queries/operation";
 import { cn } from "@/lib/utils";
@@ -238,7 +239,7 @@ export function LanguageColumn({
             <Input
               ref={barcodeRef}
               value={barcode}
-              onChange={(e) => setBarcode(e.target.value)}
+              onChange={(e) => setBarcode(normalizeBarcodeInput(e.target.value))}
               onKeyDown={handleBarcodeKeyDown}
               placeholder="BK00001"
               autoFocus
