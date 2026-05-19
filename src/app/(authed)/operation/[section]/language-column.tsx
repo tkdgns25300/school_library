@@ -70,31 +70,58 @@ export function LanguageColumn({
   const [scanGuideOpen, setScanGuideOpen] = useState(false);
   const barcodeRef = useRef<HTMLInputElement>(null);
 
+  function focusBarcode() {
+    const input = barcodeRef.current;
+    if (!input) return;
+    input.focus();
+    input.select();
+  }
+
   function openScanGuide() {
     if (mode === "lend" && !student) {
       toast.error("학생을 먼저 선택해주세요");
       return;
     }
+    // Clear anything residual in the input — a stray pre-scan keystroke would
+    // otherwise concatenate with the next scan (BK00001 → BBK00001).
+    setBarcode("");
     setScanGuideOpen(true);
-    requestAnimationFrame(() => barcodeRef.current?.focus());
   }
 
   function closeScanGuide() {
     setScanGuideOpen(false);
-    barcodeRef.current?.focus();
+    focusBarcode();
   }
 
   useEffect(() => {
     if (!scanGuideOpen) return;
+    requestAnimationFrame(() => {
+      const input = barcodeRef.current;
+      if (!input) return;
+      input.focus();
+      input.select();
+    });
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") {
         e.preventDefault();
-        closeScanGuide();
+        setScanGuideOpen(false);
+        requestAnimationFrame(() => barcodeRef.current?.focus());
       }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  });
+  }, [scanGuideOpen]);
+
+  // After each scan transition finishes (success or failure), restore focus
+  // to the barcode input — the input is disabled while `scanning`, which
+  // drops focus, and we need it back so the next scan lands correctly.
+  const prevScanningRef = useRef(scanning);
+  useEffect(() => {
+    if (prevScanningRef.current && !scanning) {
+      requestAnimationFrame(focusBarcode);
+    }
+    prevScanningRef.current = scanning;
+  }, [scanning]);
 
   const isKo = language === "ko";
   const badgeClass = isKo
@@ -123,8 +150,6 @@ export function LanguageColumn({
           dueDate: format(dueDate, "yyyy-MM-dd"),
         });
         setBarcode("");
-        barcodeRef.current?.focus();
-        setScanGuideOpen(false);
         if (result.error) {
           toast.error(result.error);
           if (result.book) setLastBook(result.book);
@@ -132,6 +157,7 @@ export function LanguageColumn({
         }
         toast.success(`'${result.book?.title ?? value}' 대여 완료`);
         setLastBook(result.book ?? null);
+        setScanGuideOpen(false);
       });
       return;
     }
@@ -143,7 +169,6 @@ export function LanguageColumn({
         bookId: value,
       });
       setBarcode("");
-      barcodeRef.current?.focus();
       if (result.error) {
         toast.error(result.error);
         if (result.book) setLastBook(result.book);
@@ -151,6 +176,7 @@ export function LanguageColumn({
       }
       toast.success(`'${result.book?.title ?? value}' 반납 완료`);
       setLastBook(result.book ?? null);
+      setScanGuideOpen(false);
     });
   }
 
