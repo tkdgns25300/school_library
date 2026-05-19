@@ -146,8 +146,8 @@ export function StudentsView({ students }: { students: StudentWithStats[] }) {
                 <TableHead className="w-20">학년</TableHead>
                 <TableHead className="w-32">반</TableHead>
                 <TableHead>이름</TableHead>
-                <TableHead className="w-44">한국어</TableHead>
-                <TableHead className="w-44">영어</TableHead>
+                <TableHead className="w-44">한국어 도서 대여 수</TableHead>
+                <TableHead className="w-44">영어 도서 대여 수</TableHead>
                 <TableHead className="w-24 text-right" />
               </TableRow>
             </TableHeader>
@@ -276,3 +276,4 @@ function LoanCount({
     </div>
   );
 }
+

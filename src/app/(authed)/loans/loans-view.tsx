@@ -23,16 +23,12 @@ import {
 } from "@/components/ui/table";
 import { CLASS_SECTIONS } from "@/constants/class-sections";
 import { LANGUAGE_LABEL } from "@/constants/languages";
+import { overdueDays } from "@/lib/date";
 import type { LoanRow } from "@/lib/queries/loans";
 import { cn } from "@/lib/utils";
 import type { Language } from "@/types/domain";
 
 import { LoanDetailDialog } from "./loan-detail-dialog";
-
-function overdueDays(dueDate: string, today: string): number {
-  if (dueDate >= today) return 0;
-  return Math.floor((Date.parse(today) - Date.parse(dueDate)) / 86_400_000);
-}
 
 export function LoansView({
   loans,

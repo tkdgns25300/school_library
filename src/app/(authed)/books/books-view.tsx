@@ -109,7 +109,7 @@ export function BooksView({ books }: { books: BookWithStatus[] }) {
       if (statusFilter === "available" && b.isActive) return false;
       if (statusFilter === "active" && !b.isActive) return false;
       if (q !== "") {
-        const formatted = formatBookLevel(b.level, b.language as Language);
+        const formatted = formatBookLevel(b.level, b.language);
         const matches =
           b.title.toLowerCase().includes(q) ||
           (b.author?.toLowerCase().includes(q) ?? false) ||
@@ -374,7 +374,7 @@ function BooksTable({
                 <TableCell>
                   <div
                     className={cn(
-                      "flex h-14 w-10 flex-col items-center justify-center gap-0.5 overflow-hidden rounded-md p-1 text-[8px] font-semibold leading-tight",
+                      "flex h-14 w-10 items-center justify-center overflow-hidden rounded-md",
                       language === "ko"
                         ? "bg-ko text-ko-foreground"
                         : "bg-en text-en-foreground",
@@ -388,7 +388,7 @@ function BooksTable({
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      <>
+                      <div className="flex h-full w-full flex-col items-center justify-center gap-0.5 p-1 text-[8px] font-semibold leading-tight">
                         <span className="uppercase">
                           {language.toUpperCase()}
                         </span>
@@ -400,7 +400,7 @@ function BooksTable({
                             {formatBookLevel(book.level, language)}
                           </span>
                         ) : null}
-                      </>
+                      </div>
                     )}
                   </div>
                 </TableCell>

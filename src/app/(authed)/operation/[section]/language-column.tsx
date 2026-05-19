@@ -24,12 +24,12 @@ import {
 } from "@/components/ui/popover";
 import { CLASS_SECTIONS } from "@/constants/class-sections";
 import { LANGUAGE_LABEL } from "@/constants/languages";
-import { todayIso } from "@/lib/date";
+import { overdueDays, todayIso } from "@/lib/date";
 import type { ActiveLoan, Student } from "@/lib/queries/operation";
 import { cn } from "@/lib/utils";
 import type { ClassSection, Language } from "@/types/domain";
 
-import { lendBook, returnBook, type ScannedBook } from "./actions";
+import { lendBook, returnBook } from "./actions";
 
 const DEFAULT_DUE_DAYS = 7;
 const SCAN_FEEDBACK_MS = 1500;
@@ -37,15 +37,6 @@ const SCAN_FEEDBACK_MS = 1500;
 type Mode = "lend" | "return";
 
 type ScanFeedback = { kind: "error"; message: string; bookId: string };
-
-function overdueDays(dueDate: string): number {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const due = new Date(dueDate);
-  due.setHours(0, 0, 0, 0);
-  const diff = today.getTime() - due.getTime();
-  return Math.max(0, Math.floor(diff / 86_400_000));
-}
 
 export function LanguageColumn({
   language,
@@ -71,7 +62,6 @@ export function LanguageColumn({
     return d;
   });
   const [barcode, setBarcode] = useState<string>("");
-  const [lastBook, setLastBook] = useState<ScannedBook | null>(null);
   const [scanning, startScan] = useTransition();
   const [scanGuideOpen, setScanGuideOpen] = useState(false);
   const [scanFeedback, setScanFeedback] = useState<ScanFeedback | null>(null);
@@ -175,7 +165,6 @@ export function LanguageColumn({
         });
         setBarcode("");
         if (result.error) {
-          if (result.book) setLastBook(result.book);
           setScanFeedback({
             kind: "error",
             message: result.error,
@@ -183,7 +172,6 @@ export function LanguageColumn({
           });
           return;
         }
-        setLastBook(result.book ?? null);
         setScanGuideOpen(false);
         toast.success(
           `${pickedStudent.grade}학년 ${pickedStudent.name} — '${result.book?.title ?? value}' 대여 완료`,
@@ -201,7 +189,6 @@ export function LanguageColumn({
       });
       setBarcode("");
       if (result.error) {
-        if (result.book) setLastBook(result.book);
         setScanFeedback({
           kind: "error",
           message: result.error,
@@ -209,7 +196,6 @@ export function LanguageColumn({
         });
         return;
       }
-      setLastBook(result.book ?? null);
       setScanGuideOpen(false);
       const who = result.borrower
         ? `${result.borrower.grade}학년 ${result.borrower.name} — `
@@ -229,11 +215,9 @@ export function LanguageColumn({
         bookId: loan.book.id,
       });
       if (result.error) {
-        if (result.book) setLastBook(result.book);
         toast.error(result.error);
         return;
       }
-      setLastBook(result.book ?? null);
       const who = result.borrower
         ? `${result.borrower.grade}학년 ${result.borrower.name} — `
         : `${loan.student.grade}학년 ${loan.student.name} — `;
@@ -361,12 +345,12 @@ export function LanguageColumn({
           </Button>
         </div>
 
-        {lastBook ? <ScannedBookPreview book={lastBook} /> : null}
       </div>
 
       <ActiveLoanList
         loans={loans}
         mode={mode}
+        today={today}
         onReturn={handleListReturn}
         processing={scanning}
       />
@@ -699,53 +683,16 @@ function StudentPicker({
   );
 }
 
-function ScannedBookPreview({ book }: { book: ScannedBook }) {
-  const isKo = book.language === "ko";
-  const coverClass = isKo
-    ? "bg-ko text-ko-foreground"
-    : "bg-en text-en-foreground";
-
-  return (
-    <div className="flex items-center gap-3 rounded-md border bg-card p-3">
-      <div
-        className={cn(
-          "flex h-16 w-12 shrink-0 items-center justify-center overflow-hidden rounded text-[10px] font-semibold",
-          coverClass,
-        )}
-      >
-        {book.cover_image_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={book.cover_image_url}
-            alt={book.title}
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          <span>{book.language.toUpperCase()}</span>
-        )}
-      </div>
-      <div className="min-w-0 flex-1">
-        <div className="truncate font-medium">{book.title}</div>
-        <div className="truncate text-xs text-muted-foreground">
-          {book.author ?? "—"}
-          {book.level ? ` · ${book.level}` : ""}
-        </div>
-        <div className="mt-0.5 font-mono text-[10px] text-muted-foreground">
-          {book.id}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function ActiveLoanList({
   loans,
   mode,
+  today,
   onReturn,
   processing,
 }: {
   loans: ActiveLoan[];
   mode: Mode;
+  today: string;
   onReturn: (loan: ActiveLoan) => void;
   processing: boolean;
 }) {
@@ -765,6 +712,7 @@ function ActiveLoanList({
             <ActiveLoanItem
               key={loan.id}
               loan={loan}
+              today={today}
               showReturnButton={isReturn}
               onReturn={onReturn}
               processing={processing}
@@ -778,16 +726,18 @@ function ActiveLoanList({
 
 function ActiveLoanItem({
   loan,
+  today,
   showReturnButton,
   onReturn,
   processing,
 }: {
   loan: ActiveLoan;
+  today: string;
   showReturnButton: boolean;
   onReturn: (loan: ActiveLoan) => void;
   processing: boolean;
 }) {
-  const days = overdueDays(loan.due_date);
+  const days = overdueDays(loan.due_date, today);
   const isOverdue = days > 0;
 
   return (
