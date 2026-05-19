@@ -17,21 +17,18 @@ export default async function OperationHomePage() {
 
   return (
     <>
-      <PageHeader title="대여 데스크" subtitle="반 선택 후 대여·반납과 반별 현황" />
-      <main className="flex-1 bg-muted/30 px-6 py-10">
-        <div className="mx-auto max-w-5xl">
-          <header className="mb-10 text-center">
-            <p className="text-xs uppercase tracking-wider text-muted-foreground">
-              SCHOOL LIBRARY · 더힘스쿨 수지점
-            </p>
-            <h2 className="mt-2 text-2xl font-semibold">
-              어느 반을 보고 계세요?
+      <PageHeader title="대여 데스크" />
+      <main className="flex-1 bg-muted/30 px-6 py-12">
+        <div className="mx-auto max-w-6xl">
+          <header className="mb-12 text-center">
+            <h2 className="text-3xl font-semibold tracking-tight">
+              어느 반을 운영할까요?
             </h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              반을 선택하면 그 반의 대여·반납과 학생별 현황만 보여드립니다.
+            <p className="mt-3 text-sm text-muted-foreground">
+              선택한 반의 대여·반납 화면이 열립니다
             </p>
           </header>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
             {CLASS_SECTIONS.map((section) => {
               const stats = statsBySection[section.id];
               return (
@@ -40,7 +37,6 @@ export default async function OperationHomePage() {
                   id={section.id}
                   label={section.label}
                   description={section.description}
-                  grades={section.grades}
                   studentCount={stats?.studentCount ?? 0}
                   activeCount={stats?.activeCount ?? 0}
                   overdueCount={stats?.overdueCount ?? 0}
