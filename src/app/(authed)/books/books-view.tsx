@@ -28,7 +28,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { LANGUAGE_LEVEL_TERM } from "@/constants/languages";
+import { LANGUAGE_LABEL, LANGUAGE_LEVEL_TERM } from "@/constants/languages";
 import { downloadLabelsPdf } from "@/lib/download-labels";
 import { cn } from "@/lib/utils";
 import type { Language } from "@/types/domain";
@@ -45,8 +45,41 @@ type FormDialog =
   | { type: "edit"; book: BookWithStatus }
   | null;
 
-const TAB_TRIGGER_CLASS =
-  "flex-none rounded-none border-b-2 border-transparent bg-transparent px-4 py-2.5 text-sm font-medium text-muted-foreground shadow-none transition-colors data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none";
+function BookTab({
+  value,
+  language,
+  count,
+}: {
+  value: string;
+  language: Language;
+  count: number;
+}) {
+  const isKo = language === "ko";
+  return (
+    <TabsTrigger
+      value={value}
+      className={cn(
+        "group flex-none items-center gap-2 rounded-none border-0 border-b-[3px] border-transparent bg-transparent px-5 py-3 text-sm font-medium text-muted-foreground shadow-none transition-colors hover:text-foreground",
+        "data-active:bg-transparent data-active:font-bold data-active:shadow-none",
+        isKo
+          ? "data-active:border-b-ko data-active:text-ko"
+          : "data-active:border-b-en data-active:text-en",
+      )}
+    >
+      <span>{LANGUAGE_LABEL[language].full}</span>
+      <span
+        className={cn(
+          "rounded-full bg-muted px-2 py-0.5 text-xs font-semibold tabular-nums text-muted-foreground transition-colors",
+          isKo
+            ? "group-data-active:bg-ko group-data-active:text-ko-foreground"
+            : "group-data-active:bg-en group-data-active:text-en-foreground",
+        )}
+      >
+        {count}
+      </span>
+    </TabsTrigger>
+  );
+}
 
 export function BooksView({ books }: { books: BookWithStatus[] }) {
   const [search, setSearch] = useState("");
@@ -121,13 +154,10 @@ export function BooksView({ books }: { books: BookWithStatus[] }) {
 
   return (
     <>
-      <div className="mb-6 flex items-end justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">책 목록</h2>
-          <p className="mt-1.5 text-sm text-muted-foreground">
-            전체 {books.length}권 · 한국어 {koBooks.length}권 · 영어{" "}
-            {enBooks.length}권
-          </p>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-baseline gap-1.5">
+          <span className="text-2xl font-bold tabular-nums">{books.length}</span>
+          <span className="text-sm text-muted-foreground">권 등록</span>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -151,12 +181,8 @@ export function BooksView({ books }: { books: BookWithStatus[] }) {
 
       <Tabs defaultValue="ko">
         <TabsList className="h-auto w-full justify-start rounded-none border-b bg-transparent p-0">
-          <TabsTrigger value="ko" className={TAB_TRIGGER_CLASS}>
-            한국어 도서 · {koBooks.length}
-          </TabsTrigger>
-          <TabsTrigger value="en" className={TAB_TRIGGER_CLASS}>
-            English Books · {enBooks.length}
-          </TabsTrigger>
+          <BookTab value="ko" language="ko" count={koBooks.length} />
+          <BookTab value="en" language="en" count={enBooks.length} />
         </TabsList>
 
         <div className="mt-4 space-y-4">
@@ -319,7 +345,7 @@ function BooksTable({
               {LANGUAGE_LEVEL_TERM[language]}
             </TableHead>
             <TableHead className="w-24">상태</TableHead>
-            <TableHead className="w-24 text-right">액션</TableHead>
+            <TableHead className="w-24 text-right" />
           </TableRow>
         </TableHeader>
         <TableBody>

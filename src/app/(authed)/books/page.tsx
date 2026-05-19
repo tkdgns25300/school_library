@@ -14,7 +14,7 @@ export default async function BooksPage() {
 
   return (
     <>
-      <PageHeader title="책" subtitle="바코드·라벨·표지" />
+      <PageHeader title="책" />
       <main className="flex-1 bg-muted/30 px-6 py-8">
         <div className="mx-auto max-w-6xl">
           <BooksView books={books} />

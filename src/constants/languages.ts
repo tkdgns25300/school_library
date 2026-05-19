@@ -2,7 +2,7 @@ import type { Language } from "@/types/domain";
 
 export const LANGUAGE_LABEL: Record<Language, { short: string; full: string }> = {
   ko: { short: "KO", full: "한국어 도서" },
-  en: { short: "EN", full: "English Books" },
+  en: { short: "EN", full: "영어 도서" },
 };
 
 export const LANGUAGE_LEVEL_TERM: Record<Language, string> = {

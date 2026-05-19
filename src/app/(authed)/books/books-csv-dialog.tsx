@@ -37,7 +37,7 @@ const BOOK_COLUMNS: ReadonlyArray<CsvColumn> = [
     label: "권장 학년",
     required: false,
     example: "1",
-    choices: ["", "1", "2", "3", "4", "5", "6"],
+    choices: ["1", "2", "3", "4", "5", "6"],
   },
   {
     csv: "level",
@@ -73,7 +73,7 @@ export function BooksCsvDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl">
+      <DialogContent className="sm:max-w-5xl">
         <DialogHeader>
           <DialogTitle>책 일괄 업로드</DialogTitle>
           <DialogDescription>
