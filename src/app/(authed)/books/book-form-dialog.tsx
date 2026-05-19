@@ -21,8 +21,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { BOOK_LEVELS, formatBookLevel } from "@/constants/levels";
 import { LANGUAGE_LABEL, LANGUAGE_LEVEL_TERM } from "@/constants/languages";
-import { GRADES } from "@/types/domain";
 import type { Language } from "@/types/domain";
 import { cn } from "@/lib/utils";
 
@@ -31,12 +31,15 @@ import { createBook, updateBook, type BookFormState } from "./actions";
 const FIELD_LABEL_CLASS =
   "text-xs font-semibold uppercase tracking-wider text-muted-foreground";
 
+function RequiredMark() {
+  return <span className="ml-0.5 text-destructive">*</span>;
+}
+
 type Book = {
   id: string;
   title: string;
   author: string | null;
   publisher: string | null;
-  grade_level: number | null;
   language: string;
   level: string | null;
   cover_image_url: string | null;
@@ -128,7 +131,7 @@ export function BookFormDialog({
 
               <div className="space-y-2">
                 <Label htmlFor="title" className={FIELD_LABEL_CLASS}>
-                  제목
+                  제목<RequiredMark />
                 </Label>
                 <Input
                   id="title"
@@ -168,52 +171,40 @@ export function BookFormDialog({
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label htmlFor="grade_level" className={FIELD_LABEL_CLASS}>
-                    권장 학년
-                  </Label>
-                  <Select
-                    name="grade_level"
-                    defaultValue={
-                      isEdit && mode.book.grade_level
-                        ? String(mode.book.grade_level)
-                        : "none"
-                    }
-                    disabled={pending}
-                  >
-                    <SelectTrigger id="grade_level" className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">없음</SelectItem>
-                      {GRADES.map((g) => (
-                        <SelectItem key={g} value={String(g)}>
-                          {g}학년
+              <div className="space-y-2">
+                <Label htmlFor="level" className={FIELD_LABEL_CLASS}>
+                  {LANGUAGE_LEVEL_TERM[language]}
+                  <RequiredMark />
+                </Label>
+                <Select
+                  name="level"
+                  required
+                  defaultValue={
+                    isEdit && mode.book.level ? mode.book.level : undefined
+                  }
+                  disabled={pending}
+                >
+                  <SelectTrigger id="level" className="w-full">
+                    <SelectValue placeholder="선택" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {BOOK_LEVELS.map((n) => {
+                      const v = String(n);
+                      return (
+                        <SelectItem key={v} value={v}>
+                          {formatBookLevel(v, language)}
                         </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="level" className={FIELD_LABEL_CLASS}>
-                    {LANGUAGE_LEVEL_TERM[language]}
-                  </Label>
-                  <Input
-                    id="level"
-                    name="level"
-                    defaultValue={isEdit ? mode.book.level ?? "" : ""}
-                    disabled={pending}
-                    placeholder={
-                      language === "ko" ? "예: 2단계" : "예: AR 2.5"
-                    }
-                  />
-                </div>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
             <div className="w-32 space-y-2">
-              <Label className={FIELD_LABEL_CLASS}>표지</Label>
+              <Label className={FIELD_LABEL_CLASS}>
+                표지{!isEdit ? <RequiredMark /> : null}
+              </Label>
               <input
                 type="file"
                 name="cover"
@@ -221,6 +212,7 @@ export function BookFormDialog({
                 accept="image/*"
                 className="sr-only"
                 onChange={handleCoverChange}
+                required={!isEdit}
                 disabled={pending}
               />
               <label

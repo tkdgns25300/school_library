@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { BOOK_LEVEL_CHOICES } from "@/constants/levels";
 import { type CsvColumn, xlsxToCsv } from "@/lib/csv-template";
 import { cn } from "@/lib/utils";
 
@@ -33,25 +34,19 @@ const BOOK_COLUMNS: ReadonlyArray<CsvColumn> = [
   { csv: "author", label: "저자", required: false, example: "권정생" },
   { csv: "publisher", label: "출판사", required: false, example: "길벗어린이" },
   {
-    csv: "grade_level",
-    label: "권장 학년",
-    required: false,
-    example: "1",
-    choices: ["1", "2", "3", "4", "5", "6"],
-  },
-  {
     csv: "level",
     label: "단계 / 레벨",
-    required: false,
-    example: "1단계",
-    hint: "한국어=단계, 영어=레벨 (자유 텍스트)",
+    required: true,
+    example: "1",
+    choices: BOOK_LEVEL_CHOICES,
+    hint: "1~13 중 선택 (한국어=단계, 영어=레벨)",
   },
   {
     csv: "cover_image_url",
     label: "표지 URL",
-    required: false,
-    example: "",
-    hint: "외부 URL을 그대로 저장 (다운로드·재호스팅 X)",
+    required: true,
+    example: "https://example.com/cover.jpg",
+    hint: "외부 URL 필수 (이미지 호스팅 후 URL 입력)",
   },
 ];
 

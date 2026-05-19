@@ -5,7 +5,6 @@ export type BookWithStatus = {
   title: string;
   author: string | null;
   publisher: string | null;
-  grade_level: number | null;
   language: string;
   level: string | null;
   cover_image_url: string | null;
@@ -18,7 +17,7 @@ export async function getBooksWithStatus(): Promise<BookWithStatus[]> {
     supabase
       .from("books")
       .select(
-        "id, title, author, publisher, grade_level, language, level, cover_image_url",
+        "id, title, author, publisher, language, level, cover_image_url",
       )
       .order("id"),
     supabase.from("loans").select("book_id").is("returned_at", null),

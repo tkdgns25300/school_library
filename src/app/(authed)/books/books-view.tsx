@@ -29,6 +29,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { LANGUAGE_LABEL, LANGUAGE_LEVEL_TERM } from "@/constants/languages";
+import { formatBookLevel } from "@/constants/levels";
 import { downloadLabelsPdf } from "@/lib/download-labels";
 import { cn } from "@/lib/utils";
 import type { Language } from "@/types/domain";
@@ -108,10 +109,12 @@ export function BooksView({ books }: { books: BookWithStatus[] }) {
       if (statusFilter === "available" && b.isActive) return false;
       if (statusFilter === "active" && !b.isActive) return false;
       if (q !== "") {
+        const formatted = formatBookLevel(b.level, b.language as Language);
         const matches =
           b.title.toLowerCase().includes(q) ||
           (b.author?.toLowerCase().includes(q) ?? false) ||
-          (b.level?.toLowerCase().includes(q) ?? false);
+          (b.level?.toLowerCase().includes(q) ?? false) ||
+          (formatted?.toLowerCase().includes(q) ?? false);
         if (!matches) return false;
       }
       return true;
@@ -393,7 +396,9 @@ function BooksTable({
                           {book.title}
                         </span>
                         {book.level ? (
-                          <span className="opacity-80">{book.level}</span>
+                          <span className="opacity-80">
+                            {formatBookLevel(book.level, language)}
+                          </span>
                         ) : null}
                       </>
                     )}
@@ -421,7 +426,9 @@ function BooksTable({
                 </TableCell>
                 <TableCell>
                   {book.level ? (
-                    <Badge variant="secondary">{book.level}</Badge>
+                    <Badge variant="secondary">
+                      {formatBookLevel(book.level, language)}
+                    </Badge>
                   ) : (
                     <span className="text-muted-foreground">—</span>
                   )}

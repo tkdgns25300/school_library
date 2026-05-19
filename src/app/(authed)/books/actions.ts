@@ -3,6 +3,7 @@
 import { updateTag } from "next/cache";
 import Papa from "papaparse";
 
+import { isValidBookLevel } from "@/constants/levels";
 import { createClient } from "@/lib/supabase/server";
 import type { Language } from "@/types/domain";
 
@@ -10,10 +11,6 @@ const VALID_LANGUAGES: ReadonlyArray<Language> = ["ko", "en"];
 
 function isValidLanguage(value: string): value is Language {
   return (VALID_LANGUAGES as ReadonlyArray<string>).includes(value);
-}
-
-function isValidGradeLevel(value: number): boolean {
-  return Number.isInteger(value) && value >= 1 && value <= 6;
 }
 
 type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
@@ -61,9 +58,8 @@ type ParsedForm =
       title: string;
       author: string | null;
       publisher: string | null;
-      gradeLevel: number | null;
       language: Language;
-      level: string | null;
+      level: string;
       cover: File | null;
     }
   | { error: string };
@@ -72,9 +68,8 @@ function readForm(formData: FormData): ParsedForm {
   const title = formData.get("title");
   const author = formData.get("author");
   const publisher = formData.get("publisher");
-  const gradeRaw = formData.get("grade_level");
   const language = formData.get("language");
-  const level = formData.get("level");
+  const levelRaw = formData.get("level");
   const cover = formData.get("cover");
 
   if (typeof title !== "string" || title.trim() === "") {
@@ -84,14 +79,10 @@ function readForm(formData: FormData): ParsedForm {
     return { error: "언어를 선택해주세요." };
   }
 
-  let gradeLevel: number | null = null;
-  if (typeof gradeRaw === "string" && gradeRaw !== "" && gradeRaw !== "none") {
-    const parsed = Number.parseInt(gradeRaw, 10);
-    if (!isValidGradeLevel(parsed)) {
-      return { error: "권장 학년은 1~6 또는 비워두세요." };
-    }
-    gradeLevel = parsed;
+  if (typeof levelRaw !== "string" || levelRaw === "" || !isValidBookLevel(levelRaw)) {
+    return { error: "단계/레벨을 1~13 중에서 선택해주세요." };
   }
+  const level = levelRaw;
 
   const coverFile =
     cover instanceof File && cover.size > 0 ? cover : null;
@@ -103,10 +94,8 @@ function readForm(formData: FormData): ParsedForm {
       typeof publisher === "string" && publisher.trim() !== ""
         ? publisher.trim()
         : null,
-    gradeLevel,
     language,
-    level:
-      typeof level === "string" && level.trim() !== "" ? level.trim() : null,
+    level,
     cover: coverFile,
   };
 }
@@ -118,6 +107,10 @@ export async function createBook(
   const parsed = readForm(formData);
   if ("error" in parsed) return { error: parsed.error };
 
+  if (parsed.cover === null) {
+    return { error: "표지 이미지를 선택해주세요." };
+  }
+
   const supabase = await createClient();
   const id = await nextBookId(supabase);
 
@@ -127,7 +120,6 @@ export async function createBook(
     title: parsed.title,
     author: parsed.author,
     publisher: parsed.publisher,
-    grade_level: parsed.gradeLevel,
     language: parsed.language,
     level: parsed.level,
     cover_image_url: null,
@@ -185,7 +177,6 @@ export async function updateBook(
       title: parsed.title,
       author: parsed.author,
       publisher: parsed.publisher,
-      grade_level: parsed.gradeLevel,
       language: parsed.language,
       level: parsed.level,
       ...(coverUrl !== undefined ? { cover_image_url: coverUrl } : {}),
@@ -249,7 +240,6 @@ type CsvRow = {
   title?: string;
   author?: string;
   publisher?: string;
-  grade_level?: string;
   language?: string;
   level?: string;
   cover_image_url?: string;
@@ -293,15 +283,24 @@ export async function importBooksCsv(
       continue;
     }
 
-    let gradeLevel: number | null = null;
-    const gradeStr = row.grade_level?.trim() ?? "";
-    if (gradeStr !== "") {
-      const g = Number.parseInt(gradeStr, 10);
-      if (!isValidGradeLevel(g)) {
-        results.push({ row: rowNumber, title, error: "grade_level은 1~6" });
-        continue;
-      }
-      gradeLevel = g;
+    const levelStr = row.level?.trim() ?? "";
+    if (levelStr === "" || !isValidBookLevel(levelStr)) {
+      results.push({
+        row: rowNumber,
+        title,
+        error: "level은 1~13 (필수)",
+      });
+      continue;
+    }
+
+    const coverUrl = row.cover_image_url?.trim() ?? "";
+    if (coverUrl === "") {
+      results.push({
+        row: rowNumber,
+        title,
+        error: "cover_image_url 누락 (필수)",
+      });
+      continue;
     }
 
     const id = await nextBookId(supabase);
@@ -311,10 +310,9 @@ export async function importBooksCsv(
       title,
       author: row.author?.trim() || null,
       publisher: row.publisher?.trim() || null,
-      grade_level: gradeLevel,
       language,
-      level: row.level?.trim() || null,
-      cover_image_url: row.cover_image_url?.trim() || null,
+      level: levelStr,
+      cover_image_url: coverUrl,
     });
 
     if (error) {

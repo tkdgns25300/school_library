@@ -115,7 +115,7 @@
 
 ## Phase 2: 운영 편의
 
-- [ ] **책 CSV/XLSX 양식·필드 확정 (운영팀 협의)** — 현재 `title/language/author/publisher/grade_level/level/cover_image_url` 7개 컬럼. 실제 학교 운영에서 필요한 필드·필수 여부 재검토 필요.
+- [ ] **책 CSV/XLSX 양식·필드 확정 (운영팀 협의)** — 현재 `title/language/author/publisher/level/cover_image_url` 6개 컬럼 (level=1~13). 실제 학교 운영에서 필요한 필드·필수 여부 재검토 필요.
 - [ ] 추세 통계 (인기 도서 Top N, 학년별 대여 빈도)
 - [ ] 학년 진급 일괄 처리 / 6학년 졸업 처리
 - [ ] 책·학생 일괄 작업

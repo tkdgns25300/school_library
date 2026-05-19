@@ -43,9 +43,8 @@
 | title | text | NOT NULL | |
 | author | text | | |
 | publisher | text | | |
-| grade_level | smallint | CHECK (1~6) | 권장 학년 |
 | language | text | NOT NULL, CHECK IN ('ko','en') | 한국어/영어 구분 |
-| level | text | | 한국어=단계, 영어=레벨 (예: `1`, `2단계`, `Level 3`, `AR 2.5`) |
+| level | text | | 1~13 (UI에서 한국어 책은 `1단계`, 영어 책은 `Level 1`로 표시). DB는 숫자 문자열 그대로 |
 | cover_image_url | text | | 표지 이미지 URL (Storage `book-covers` 버킷의 public URL) |
 | registered_at | timestamptz | DEFAULT now() | |
 | updated_at | timestamptz | DEFAULT now() | Server Action이 UPDATE 시 명시적으로 `now()` 세팅 |
@@ -78,7 +77,6 @@
 | 테이블 | 인덱스 | 용도 |
 |---|---|---|
 | books | `(language)` | 책 목록 한/영 탭 |
-| books | `(grade_level)` | 학년 필터 |
 | loans | `(book_id) WHERE returned_at IS NULL` | 반납 시 활성 대여 매칭 (UNIQUE) |
 | loans | `(student_id, returned_at)` | 학생별 현재 대여·이력 |
 | loans | `(due_date) WHERE returned_at IS NULL` | 연체 조회 |
@@ -125,9 +123,9 @@ name,class_section
 
 ### 책 CSV
 ```csv
-title,author,publisher,grade_level,language,level,cover_image_url
-해리포터와 마법사의 돌,J.K.롤링,문학수첩,4,ko,4단계,https://...
-The Cat in the Hat,Dr. Seuss,Random House,2,en,Level 1,https://...
+title,author,publisher,language,level,cover_image_url
+해리포터와 마법사의 돌,J.K.롤링,문학수첩,ko,4,https://...
+The Cat in the Hat,Dr. Seuss,Random House,en,1,https://...
 ```
 - 바코드 ID는 Server Action이 자동 발급(CSV에 없음)
 - `language`는 `ko` 또는 `en`
