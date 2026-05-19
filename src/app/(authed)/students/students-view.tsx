@@ -139,8 +139,8 @@ export function StudentsView({ students }: { students: StudentWithStats[] }) {
           </Select>
         </div>
 
-        <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
-          <Table className="table-fixed">
+        <div className="overflow-x-auto rounded-xl border bg-card shadow-sm">
+          <Table className="min-w-[640px] table-fixed">
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead className="w-20">학년</TableHead>

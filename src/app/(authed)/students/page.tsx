@@ -16,7 +16,7 @@ export default async function StudentsPage() {
   return (
     <>
       <PageHeader title="학생" />
-      <main className="flex-1 bg-muted/30 px-6 py-8">
+      <main className="flex-1 bg-muted/30 px-4 py-6 md:px-6 md:py-8">
         <div className="mx-auto max-w-6xl">
           <StudentsView students={students} />
         </div>

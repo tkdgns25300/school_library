@@ -159,7 +159,7 @@ export function BooksView({ books }: { books: BookWithStatus[] }) {
           <span className="text-2xl font-bold tabular-nums">{books.length}</span>
           <span className="text-sm text-muted-foreground">권 등록</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button
             variant="outline"
             onClick={handlePrintSelected}
@@ -321,8 +321,8 @@ function BooksTable({
   const allChecked = books.length > 0 && books.every((b) => selected.has(b.id));
 
   return (
-    <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
-      <Table className="table-fixed">
+    <div className="overflow-x-auto rounded-xl border bg-card shadow-sm">
+      <Table className="min-w-[880px] table-fixed">
         <TableHeader>
           <TableRow className="hover:bg-transparent">
             <TableHead className="w-12">

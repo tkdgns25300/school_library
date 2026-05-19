@@ -1,13 +1,15 @@
-# Snapshot — 2026-05-19 (저녁)
+# Snapshot — 2026-05-19 (밤, 반응형 작업 중)
 
 > 시점 핸드오프. 새 환경에서 재개 시 이 파일부터.
 > 영구 사실은 [`../CLAUDE.md`](../CLAUDE.md) · [`SPEC.md`](./SPEC.md) · [`SCHEMA.md`](./SCHEMA.md) · [`ROADMAP.md`](./ROADMAP.md) · [`../README.md`](../README.md).
 
 ## 현재 위치
 
-Phase 1(기능 5페이지) + Phase 1.5(캐시 인프라) 완료. 오늘은 **전체 디자인 · UX 통일 패스**를 끝냄. 데이터 초기화도 마침(`admin@thehim.school`만 남음). 사이트가 운영 가능한 시각적·기능적 완성도 상태.
+Phase 1(기능 5페이지) + Phase 1.5(캐시 인프라) + 디자인 통일 패스 + 브랜드 자산 완료. 데이터 초기화도 마침(`admin@thehim.school`만 남음).
 
-**최신 main 커밋**: `08a6801`
+**진행 중**: 반응형(모바일/태블릿) — 큰 줄거리 작업 끝났지만 디테일 점검 남음. 다음 세션에서 마무리.
+
+**최신 main 커밋**: `ddd58b9` (이전 SNAPSHOT)
 
 | 라우트 | 모드 | 비고 |
 |---|---|---|
@@ -22,6 +24,25 @@ Phase 1(기능 5페이지) + Phase 1.5(캐시 인프라) 완료. 오늘은 **전
 | `/icon`, `/opengraph-image` | Dynamic | next/og 동적 PNG (CDN 캐시) |
 
 ## 오늘(2026-05-19) 한 일 요약
+
+### 반응형 작업 (밤 — 진행 중)
+
+CLAUDE.md/SPEC 「데스크탑 우선 + 모바일 조회 가능」 목표.
+
+**완료**:
+- **사이드바 → 모바일 드로어**: `sidebar.tsx` 한 파일에서 `Sidebar`(데스크탑 고정, `hidden md:flex`) + `MobileNav`(햄버거 + `Sheet` 드로어) + 내부 공유 `SidebarBody` 컴포넌트로 분리. nav 항목 클릭 시 드로어 자동 닫힘.
+- **PageHeader 햄버거**: 좌측에 `<MobileNav />` 추가, `md:hidden`으로 데스크탑에서 자동 숨김. `min-w-0 truncate`로 좁은 폭 안전. subtitle은 `hidden sm:block`.
+- **테이블 가로 스크롤**: 4개 페이지(students/teachers/books/loans) 테이블 wrapper `overflow-hidden` → `overflow-x-auto`, 테이블에 `min-w-[N]` 적용해 모바일에서 가로 스크롤로 모든 컬럼 접근 가능.
+- **페이지 padding**: 6개 main의 `px-6 py-8` → `px-4 py-6 md:px-6 md:py-8`.
+- **AuthedLayout flex item `min-w-0`**: flex item이 콘텐츠 크기(테이블 min-w) 때문에 부모를 넓히는 문제. `min-w-0`로 shrink 허용 → 페이지 자체 가로 스크롤 해소, 테이블 내부에서만 스크롤.
+- **책 페이지 액션 버튼**: 3개라 한 줄 폭이 큼 → `flex-wrap` 추가.
+
+**남은 점검**:
+- 실 디바이스(아이폰/안드로이드)·DevTools 다양한 폭에서 시각 확인
+- operation 페이지(KO/EN 칼럼) 모바일에서 1칼럼씩 세로로 잘 쌓이는지
+- Dialog/모달 (학생/책/교사 폼) 모바일에서 내용 잘리지 않는지
+- KPI 카드(loans), 카드 그리드(home) 좁은 폭에서 가독성
+- 모바일에서 검색·필터 row 줄바꿈 시 시각 정렬
 
 ### 디자인 · UX 통일 패스
 - **로그인 페이지**: Great Vibes 폰트 + 드리프트 orb + 「관리자 계정」 라벨 + hairline subtitle
@@ -85,6 +106,13 @@ Phase 1(기능 5페이지) + Phase 1.5(캐시 인프라) 완료. 오늘은 **전
 | `loans` | lend/return | 모든 쿼리 |
 
 ## 다음 작업 후보
+
+### 🔥 우선: 반응형 마무리
+- [ ] 실 디바이스/DevTools 다양한 폭에서 시각 점검
+- [ ] operation 페이지 모바일 카드 폭·내부 form 점검
+- [ ] Dialog 모바일 내용 잘림 확인
+- [ ] 검색·필터 행 wrap 시 정렬 정돈
+- [ ] 필요하면 폰트 사이즈·아이콘 사이즈 모바일 축소(`text-3xl md:text-3xl` 패턴)
 
 ### 🔥 ROADMAP Phase 2 시작 후보
 - [ ] **책 CSV/XLSX 양식·필드 확정 (운영팀/여친 협의)** — 현재 7컬럼이 실제 학교 운영에 맞는지 재검토

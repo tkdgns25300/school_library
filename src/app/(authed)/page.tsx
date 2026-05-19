@@ -17,7 +17,7 @@ export default async function OperationHomePage() {
   return (
     <>
       <PageHeader title="대여 데스크" />
-      <main className="flex-1 bg-muted/30 px-6 py-12">
+      <main className="flex-1 bg-muted/30 px-4 py-8 md:px-6 md:py-12">
         <div className="mx-auto max-w-6xl">
           <header className="mb-12 text-center">
             <h2 className="text-3xl font-semibold tracking-tight">

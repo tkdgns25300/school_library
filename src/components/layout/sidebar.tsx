@@ -10,15 +10,19 @@ import {
   ChevronRight,
   LayoutGrid,
   LogOut,
+  Menu,
   User,
   Users,
 } from "lucide-react";
 
+import { buttonVariants } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
 import { signOut } from "./sign-out-action";
 
 const COLLAPSED_KEY = "sidebar_collapsed";
+const ADMIN_LABEL = "관리자";
 
 const NAV_GROUPS = [
   {
@@ -38,8 +42,7 @@ const NAV_GROUPS = [
   },
 ] as const;
 
-export function Sidebar({ email }: { email: string }) {
-  const pathname = usePathname();
+export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [hydrated, setHydrated] = useState(false);
 
@@ -59,10 +62,59 @@ export function Sidebar({ email }: { email: string }) {
   return (
     <aside
       className={cn(
-        "flex h-screen shrink-0 flex-col bg-sidebar text-sidebar-foreground transition-[width] duration-200",
+        "hidden h-screen shrink-0 flex-col bg-sidebar text-sidebar-foreground transition-[width] duration-200 md:flex",
         collapsed ? "w-16" : "w-60",
       )}
     >
+      <SidebarBody
+        collapsed={collapsed}
+        hydrated={hydrated}
+        onToggle={toggle}
+      />
+    </aside>
+  );
+}
+
+export function MobileNav() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger
+        className={cn(
+          buttonVariants({ variant: "ghost", size: "icon" }),
+          "md:hidden",
+        )}
+        aria-label="메뉴 열기"
+      >
+        <Menu className="size-5" />
+      </SheetTrigger>
+      <SheetContent
+        side="left"
+        className="w-72 border-r-0 bg-sidebar p-0 text-sidebar-foreground"
+      >
+        <SheetTitle className="sr-only">메뉴</SheetTitle>
+        <SidebarBody collapsed={false} onNavigate={() => setOpen(false)} />
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+function SidebarBody({
+  collapsed,
+  hydrated,
+  onToggle,
+  onNavigate,
+}: {
+  collapsed: boolean;
+  hydrated?: boolean;
+  onToggle?: () => void;
+  onNavigate?: () => void;
+}) {
+  const pathname = usePathname();
+
+  return (
+    <div className="flex h-full flex-col">
       <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-4">
         <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-sidebar-badge text-sm font-bold text-sidebar-primary-foreground">
           더힘
@@ -93,6 +145,7 @@ export function Sidebar({ email }: { email: string }) {
                   <li key={item.href}>
                     <Link
                       href={item.href}
+                      onClick={onNavigate}
                       title={collapsed ? item.label : undefined}
                       className={cn(
                         "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
@@ -121,7 +174,9 @@ export function Sidebar({ email }: { email: string }) {
             </span>
             <div className="min-w-0 flex-1 text-xs">
               <div className="truncate font-medium">관리자 계정</div>
-              <div className="truncate text-sidebar-foreground/60">{email}</div>
+              <div className="truncate text-sidebar-foreground/60">
+                {ADMIN_LABEL}
+              </div>
             </div>
             <form action={signOut}>
               <button
@@ -144,10 +199,10 @@ export function Sidebar({ email }: { email: string }) {
             </button>
           </form>
         )}
-        {hydrated ? (
+        {onToggle && hydrated ? (
           <button
             type="button"
-            onClick={toggle}
+            onClick={onToggle}
             title={collapsed ? "사이드바 펼치기" : undefined}
             className={cn(
               "mt-2 flex w-full items-center gap-3 rounded-md px-3 py-2 text-xs text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
@@ -163,6 +218,6 @@ export function Sidebar({ email }: { email: string }) {
           </button>
         ) : null}
       </div>
-    </aside>
+    </div>
   );
 }

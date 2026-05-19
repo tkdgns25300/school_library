@@ -89,8 +89,8 @@ export function TeachersView({ teachers }: { teachers: Teacher[] }) {
           />
         </div>
 
-        <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
-          <Table className="table-fixed">
+        <div className="overflow-x-auto rounded-xl border bg-card shadow-sm">
+          <Table className="min-w-[480px] table-fixed">
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead>이름</TableHead>

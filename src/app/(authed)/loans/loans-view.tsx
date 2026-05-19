@@ -144,8 +144,8 @@ export function LoansView({
         </Select>
       </div>
 
-      <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
-        <Table className="table-fixed">
+      <div className="overflow-x-auto rounded-xl border bg-card shadow-sm">
+        <Table className="min-w-[820px] table-fixed">
           <TableHeader>
             <TableRow className="hover:bg-transparent">
               <TableHead className="w-16">표지</TableHead>

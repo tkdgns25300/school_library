@@ -13,9 +13,9 @@ export default function AuthedLayout({
   return (
     <div className="flex min-h-screen bg-background">
       <Suspense>
-        <Sidebar email="관리자" />
+        <Sidebar />
       </Suspense>
-      <div className="flex flex-1 flex-col">{children}</div>
+      <div className="flex min-w-0 flex-1 flex-col">{children}</div>
       <Toaster />
     </div>
   );
