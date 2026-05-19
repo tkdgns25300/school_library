@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { format } from "date-fns";
-import { Barcode, Calendar as CalendarIcon, ScanLine } from "lucide-react";
+import { Barcode, Calendar as CalendarIcon, ScanLine, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -67,7 +67,34 @@ export function LanguageColumn({
   const [barcode, setBarcode] = useState<string>("");
   const [lastBook, setLastBook] = useState<ScannedBook | null>(null);
   const [scanning, startScan] = useTransition();
+  const [scanGuideOpen, setScanGuideOpen] = useState(false);
   const barcodeRef = useRef<HTMLInputElement>(null);
+
+  function openScanGuide() {
+    if (mode === "lend" && !student) {
+      toast.error("학생을 먼저 선택해주세요");
+      return;
+    }
+    setScanGuideOpen(true);
+    requestAnimationFrame(() => barcodeRef.current?.focus());
+  }
+
+  function closeScanGuide() {
+    setScanGuideOpen(false);
+    barcodeRef.current?.focus();
+  }
+
+  useEffect(() => {
+    if (!scanGuideOpen) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        closeScanGuide();
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
 
   const isKo = language === "ko";
   const badgeClass = isKo
@@ -97,6 +124,7 @@ export function LanguageColumn({
         });
         setBarcode("");
         barcodeRef.current?.focus();
+        setScanGuideOpen(false);
         if (result.error) {
           toast.error(result.error);
           if (result.book) setLastBook(result.book);
@@ -213,7 +241,7 @@ export function LanguageColumn({
           <Button
             type="button"
             variant="outline"
-            onClick={() => barcodeRef.current?.focus()}
+            onClick={openScanGuide}
             disabled={scanning}
             className="h-12 px-5"
           >
@@ -226,6 +254,110 @@ export function LanguageColumn({
       </div>
 
       <ActiveLoanList loans={loans} mode={mode} />
+
+      {scanGuideOpen ? (
+        <ScanGuideOverlay
+          mode={mode}
+          language={language}
+          barcode={barcode}
+          scanning={scanning}
+          onClose={closeScanGuide}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+function ScanGuideOverlay({
+  mode,
+  language,
+  barcode,
+  scanning,
+  onClose,
+}: {
+  mode: Mode;
+  language: Language;
+  barcode: string;
+  scanning: boolean;
+  onClose: () => void;
+}) {
+  const isKo = language === "ko";
+  const accentBg = isKo ? "bg-ko/12" : "bg-en/12";
+  const accentText = isKo ? "text-ko" : "text-en";
+  const ringClass = isKo ? "ring-ko/30" : "ring-en/30";
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-label="바코드 스캔"
+      onMouseDown={(e) => {
+        // Keep focus on the barcode input even while the overlay is open.
+        e.preventDefault();
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className="pointer-events-none absolute inset-0 bg-foreground/30 backdrop-blur-[2px]" />
+      <div
+        className="relative w-full max-w-sm overflow-hidden rounded-2xl bg-card shadow-2xl"
+        onMouseDown={(e) => e.stopPropagation()}
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="닫기"
+          className="absolute right-3 top-3 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        >
+          <X className="size-4" />
+        </button>
+
+        <div className="flex flex-col items-center gap-5 px-8 pb-7 pt-9 text-center">
+          <div
+            className={cn(
+              "relative flex size-20 items-center justify-center rounded-full ring-8",
+              accentBg,
+              ringClass,
+            )}
+          >
+            <ScanLine className={cn("size-10", accentText)} />
+            {scanning ? null : (
+              <span
+                className={cn(
+                  "absolute inset-0 animate-ping rounded-full opacity-40",
+                  accentBg,
+                )}
+              />
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <h3 className="text-lg font-semibold">
+              {mode === "lend" ? "대여 바코드를 스캔하세요" : "반납 바코드를 스캔하세요"}
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              스캐너로 책 바코드를 읽거나 직접 입력 후 Enter
+            </p>
+          </div>
+
+          <div
+            className={cn(
+              "w-full rounded-lg border bg-muted/30 px-4 py-3 font-mono text-base tracking-[0.2em]",
+              barcode ? "text-foreground" : "text-muted-foreground/60",
+            )}
+          >
+            {barcode || "BK00001"}
+            <span className="ml-0.5 inline-block h-4 w-px animate-pulse bg-current align-middle" />
+          </div>
+
+          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <kbd className="rounded border bg-muted px-1.5 py-0.5 font-mono text-[10px]">
+              ESC
+            </kbd>
+            <span>또는 바깥을 눌러 닫기</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
