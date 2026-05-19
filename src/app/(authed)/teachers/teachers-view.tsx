@@ -42,28 +42,43 @@ export function TeachersView({ teachers }: { teachers: Teacher[] }) {
     return teachers.filter((t) => t.name.includes(q));
   }, [teachers, search]);
 
+  const isFiltered = filtered.length !== teachers.length;
+
   return (
     <>
-      <div className="mb-6 flex items-end justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">교사 명단</h2>
-          <p className="mt-1.5 text-sm text-muted-foreground">
-            대여·반납 처리 시 담당자로 선택됩니다 · 총 {teachers.length}명
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => setCsvOpen(true)}>
-            <Upload className="size-4" />
-            CSV 업로드
-          </Button>
-          <Button onClick={() => setFormDialog({ type: "create" })}>
-            <UserPlus className="size-4" />
-            교사 추가
-          </Button>
-        </div>
-      </div>
-
       <div className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-baseline gap-1.5">
+            {isFiltered ? (
+              <>
+                <span className="text-2xl font-bold tabular-nums text-primary">
+                  {filtered.length}
+                </span>
+                <span className="text-sm text-muted-foreground">
+                  / 전체 {teachers.length}명
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="text-2xl font-bold tabular-nums">
+                  {teachers.length}
+                </span>
+                <span className="text-sm text-muted-foreground">명 교사</span>
+              </>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => setCsvOpen(true)}>
+              <Upload className="size-4" />
+              CSV 업로드
+            </Button>
+            <Button onClick={() => setFormDialog({ type: "create" })}>
+              <UserPlus className="size-4" />
+              교사 추가
+            </Button>
+          </div>
+        </div>
+
         <div className="rounded-xl border bg-card p-4 shadow-sm">
           <div className="relative max-w-sm">
             <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -82,7 +97,7 @@ export function TeachersView({ teachers }: { teachers: Teacher[] }) {
               <TableRow className="hover:bg-transparent">
                 <TableHead>이름</TableHead>
                 <TableHead className="w-48">담당 반</TableHead>
-                <TableHead className="w-28 text-right">액션</TableHead>
+                <TableHead className="w-24 text-right" />
               </TableRow>
             </TableHeader>
             <TableBody>
