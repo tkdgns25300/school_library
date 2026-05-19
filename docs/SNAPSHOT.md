@@ -76,6 +76,7 @@ CLAUDE.md/SPEC 「데스크탑 우선 + 모바일 조회 가능」 목표.
 - `src/constants/brand.ts` — BRAND_NAVY · BRAND_GRADIENT (두 이미지에서 공유)
 - `layout.tsx` — Open Graph + Twitter Card metadata, `metadataBase` 자동 fallback (VERCEL_PROJECT_PRODUCTION_URL → VERCEL_URL → localhost)
 - `proxy.ts` matcher 갱신: `/icon`, `/opengraph-image`, `/api/cron` 인증 게이트 제외 (카카오톡 크롤러·Vercel Cron 통과)
+- **`public/branding/hims-logo.png`** — HIMS(Holy International Montessori School) 공식 학교 로고. **앞으로 학교 식별자(사이드바 상단, 로그인 헤더, favicon, OG 이미지 등)는 이 로고를 사용해 통일해야 함.** 현재 `더힘` 텍스트 배지는 임시 — 이 로고 기반으로 교체 작업 필요.
 
 ### 데이터 초기화
 - DB의 students · teachers · books · loans · book_id_seq 모두 truncate/리셋
@@ -115,6 +116,8 @@ CLAUDE.md/SPEC 「데스크탑 우선 + 모바일 조회 가능」 목표.
 - [ ] 필요하면 폰트 사이즈·아이콘 사이즈 모바일 축소(`text-3xl md:text-3xl` 패턴)
 
 ### 🔥 ROADMAP Phase 2 시작 후보
+- [ ] **대여/반납 내역 관리 페이지** — 현재 `/loans`는 **활성 대여만** 표시. 반납 완료된 트랜잭션 히스토리(누가/언제/어떤 책을 빌리고 반납했는지)를 조회·필터(기간·학생·책·언어)·검색·CSV 내보내기 가능한 별도 페이지 필요. 운영팀이 반학기별·연간 통계를 요구할 때 baseline.
+- [ ] **HIMS 로고 적용** — `public/branding/hims-logo.png`를 사이드바 상단, 로그인 헤더, favicon, OG 이미지로 통일. 현재 `더힘` 텍스트 배지 → 실제 학교 로고로 교체.
 - [ ] **책 CSV/XLSX 양식·필드 확정 (운영팀/여친 협의)** — 현재 7컬럼이 실제 학교 운영에 맞는지 재검토
 - [ ] 추세 통계 (인기 도서 Top N, 학년별 대여 빈도)
 - [ ] 학년 진급 일괄 처리 / 6학년 졸업 처리

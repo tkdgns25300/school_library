@@ -11,7 +11,7 @@ export default function AuthedLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-screen overflow-x-clip bg-background">
       <Suspense>
         <Sidebar />
       </Suspense>
