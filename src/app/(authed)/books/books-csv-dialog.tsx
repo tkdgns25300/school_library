@@ -1,8 +1,9 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 import { Upload } from "lucide-react";
 
+import { CsvFormatGuide } from "@/components/csv-format-guide";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -13,15 +14,46 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { type CsvColumn, xlsxToCsv } from "@/lib/csv-template";
 import { cn } from "@/lib/utils";
 
 import { importBooksCsv, type CsvImportState } from "./actions";
 
 const INITIAL_STATE: CsvImportState = {};
 
-const SAMPLE_CSV = `title,author,publisher,grade_level,language,level,cover_image_url
-강아지똥,권정생,길벗어린이,1,ko,1단계,
-The Cat in the Hat,Dr. Seuss,Random House,2,en,Level 1,https://...`;
+const BOOK_COLUMNS: ReadonlyArray<CsvColumn> = [
+  { csv: "title", label: "제목", required: true, example: "강아지똥" },
+  {
+    csv: "language",
+    label: "언어",
+    required: true,
+    example: "ko",
+    choices: ["ko", "en"],
+  },
+  { csv: "author", label: "저자", required: false, example: "권정생" },
+  { csv: "publisher", label: "출판사", required: false, example: "길벗어린이" },
+  {
+    csv: "grade_level",
+    label: "권장 학년",
+    required: false,
+    example: "1",
+    choices: ["", "1", "2", "3", "4", "5", "6"],
+  },
+  {
+    csv: "level",
+    label: "단계 / 레벨",
+    required: false,
+    example: "1단계",
+    hint: "한국어=단계, 영어=레벨 (자유 텍스트)",
+  },
+  {
+    csv: "cover_image_url",
+    label: "표지 URL",
+    required: false,
+    example: "",
+    hint: "외부 URL을 그대로 저장 (다운로드·재호스팅 X)",
+  },
+];
 
 export function BooksCsvDialog({
   open,
@@ -41,11 +73,12 @@ export function BooksCsvDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
-          <DialogTitle>책 CSV 일괄 업로드</DialogTitle>
+          <DialogTitle>책 일괄 업로드</DialogTitle>
           <DialogDescription>
-            CSV 파일로 책을 한 번에 등록합니다. 바코드 ID는 자동 발급됩니다.
+            CSV 또는 XLSX 파일로 책을 한 번에 등록합니다. 바코드 ID는 자동
+            발급됩니다.
           </DialogDescription>
         </DialogHeader>
 
@@ -83,58 +116,80 @@ function UploadForm({
   onCancel: () => void;
 }) {
   const [fileName, setFileName] = useState<string>("");
+  const [converting, setConverting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) {
+      setFileName("");
+      return;
+    }
+    if (file.name.toLowerCase().endsWith(".xlsx")) {
+      setConverting(true);
+      try {
+        const csv = await xlsxToCsv(file);
+        const csvFile = new File(
+          [csv],
+          file.name.replace(/\.xlsx$/i, ".csv"),
+          { type: "text/csv" },
+        );
+        const dt = new DataTransfer();
+        dt.items.add(csvFile);
+        if (fileInputRef.current) fileInputRef.current.files = dt.files;
+        setFileName(file.name);
+      } finally {
+        setConverting(false);
+      }
+    } else {
+      setFileName(file.name);
+    }
+  }
 
   return (
     <form action={formAction} className="space-y-5">
-      <section className="space-y-2.5">
-        <Label className={SECTION_LABEL_CLASS}>CSV 포맷</Label>
-        <pre className="overflow-x-auto rounded-md border border-l-2 border-l-primary/40 bg-muted/40 px-4 py-3 font-mono text-xs leading-relaxed">
-          {SAMPLE_CSV}
-        </pre>
-        <ul className="space-y-1 pl-1 text-xs text-muted-foreground">
-          <li>· UTF-8 인코딩 · 헤더 행 필수</li>
-          <li>
-            · <code className="font-mono">title</code> ·{" "}
-            <code className="font-mono">language</code>(ko/en) 필수, 나머지 선택
-          </li>
-          <li>
-            · <code className="font-mono">grade_level</code>은 1~6 또는 빈 값
-          </li>
-          <li>· 바코드 ID는 시스템이 자동 발급 (CSV에 포함하지 않음)</li>
-          <li>
-            · <code className="font-mono">cover_image_url</code>은 외부 URL 그대로 저장(다운로드 X)
-          </li>
-        </ul>
-      </section>
+      <CsvFormatGuide
+        columns={BOOK_COLUMNS}
+        templateBaseName="books-template"
+      />
+
+      <p className="text-xs text-muted-foreground">
+        바코드 ID는 시스템이 자동 발급합니다. CSV에 포함하지 마세요.
+      </p>
 
       <section className="space-y-2.5">
         <Label htmlFor="csv-file" className={SECTION_LABEL_CLASS}>
           파일 선택
         </Label>
         <input
+          ref={fileInputRef}
           type="file"
           name="file"
           id="csv-file"
-          accept=".csv,text/csv"
+          accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
           className="sr-only"
-          onChange={(e) => setFileName(e.target.files?.[0]?.name ?? "")}
+          onChange={handleFileChange}
           required
-          disabled={pending}
+          disabled={pending || converting}
         />
         <label
           htmlFor="csv-file"
           className={cn(
             "flex cursor-pointer items-center justify-center gap-3 rounded-md border border-dashed px-4 py-6 text-sm transition-colors",
-            pending
+            pending || converting
               ? "cursor-not-allowed opacity-50"
               : "hover:border-foreground/30 hover:bg-muted/40",
           )}
         >
           <Upload className="size-4 text-muted-foreground" />
-          {fileName ? (
+          {converting ? (
+            <span className="text-muted-foreground">XLSX 변환 중…</span>
+          ) : fileName ? (
             <span className="font-medium">{fileName}</span>
           ) : (
-            <span className="text-muted-foreground">CSV 파일 선택…</span>
+            <span className="text-muted-foreground">
+              CSV 또는 XLSX 파일 선택…
+            </span>
           )}
         </label>
       </section>
@@ -150,11 +205,11 @@ function UploadForm({
           type="button"
           variant="outline"
           onClick={onCancel}
-          disabled={pending}
+          disabled={pending || converting}
         >
           취소
         </Button>
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" disabled={pending || converting}>
           {pending ? "업로드 중…" : "업로드"}
         </Button>
       </DialogFooter>

@@ -1,8 +1,9 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 import { Upload } from "lucide-react";
 
+import { CsvFormatGuide } from "@/components/csv-format-guide";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -13,16 +14,23 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { type CsvColumn, xlsxToCsv } from "@/lib/csv-template";
 import { cn } from "@/lib/utils";
 
 import { importTeachersCsv, type CsvImportState } from "./actions";
 
 const INITIAL_STATE: CsvImportState = {};
 
-const SAMPLE_CSV = `name,class_section
-김지영,junior 1
-박서연,junior 2
-이민호,senior 1`;
+const TEACHER_COLUMNS: ReadonlyArray<CsvColumn> = [
+  { csv: "name", label: "이름", required: true, example: "김지영" },
+  {
+    csv: "class_section",
+    label: "담당 반",
+    required: true,
+    example: "junior 1",
+    choices: ["junior 1", "junior 2", "senior 1"],
+  },
+];
 
 export function TeachersCsvDialog({
   open,
@@ -42,11 +50,11 @@ export function TeachersCsvDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>교사 CSV 일괄 업로드</DialogTitle>
+          <DialogTitle>교사 일괄 업로드</DialogTitle>
           <DialogDescription>
-            CSV 파일로 교사 명단을 한 번에 등록합니다.
+            CSV 또는 XLSX 파일로 교사 명단을 한 번에 등록합니다.
           </DialogDescription>
         </DialogHeader>
 
@@ -84,54 +92,76 @@ function UploadForm({
   onCancel: () => void;
 }) {
   const [fileName, setFileName] = useState<string>("");
+  const [converting, setConverting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) {
+      setFileName("");
+      return;
+    }
+    if (file.name.toLowerCase().endsWith(".xlsx")) {
+      setConverting(true);
+      try {
+        const csv = await xlsxToCsv(file);
+        const csvFile = new File(
+          [csv],
+          file.name.replace(/\.xlsx$/i, ".csv"),
+          { type: "text/csv" },
+        );
+        const dt = new DataTransfer();
+        dt.items.add(csvFile);
+        if (fileInputRef.current) fileInputRef.current.files = dt.files;
+        setFileName(file.name);
+      } finally {
+        setConverting(false);
+      }
+    } else {
+      setFileName(file.name);
+    }
+  }
 
   return (
     <form action={formAction} className="space-y-5">
-      <section className="space-y-2.5">
-        <Label className={SECTION_LABEL_CLASS}>CSV 포맷</Label>
-        <pre className="overflow-x-auto rounded-md border border-l-2 border-l-primary/40 bg-muted/40 px-4 py-3 font-mono text-xs leading-relaxed">
-          {SAMPLE_CSV}
-        </pre>
-        <ul className="space-y-1 pl-1 text-xs text-muted-foreground">
-          <li>· UTF-8 인코딩 · 헤더 행 필수</li>
-          <li>
-            · <code className="font-mono">class_section</code>은{" "}
-            <code className="font-mono">junior 1</code> ·{" "}
-            <code className="font-mono">junior 2</code> ·{" "}
-            <code className="font-mono">senior 1</code> 중 하나
-          </li>
-          <li>· 중복 이름은 행 단위로 실패 처리</li>
-        </ul>
-      </section>
+      <CsvFormatGuide
+        columns={TEACHER_COLUMNS}
+        templateBaseName="teachers-template"
+      />
 
       <section className="space-y-2.5">
         <Label htmlFor="csv-file" className={SECTION_LABEL_CLASS}>
           파일 선택
         </Label>
         <input
+          ref={fileInputRef}
           type="file"
           name="file"
           id="csv-file"
-          accept=".csv,text/csv"
+          accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
           className="sr-only"
-          onChange={(e) => setFileName(e.target.files?.[0]?.name ?? "")}
+          onChange={handleFileChange}
           required
-          disabled={pending}
+          disabled={pending || converting}
         />
         <label
           htmlFor="csv-file"
           className={cn(
             "flex cursor-pointer items-center justify-center gap-3 rounded-md border border-dashed px-4 py-6 text-sm transition-colors",
-            pending
+            pending || converting
               ? "cursor-not-allowed opacity-50"
               : "hover:border-foreground/30 hover:bg-muted/40",
           )}
         >
           <Upload className="size-4 text-muted-foreground" />
-          {fileName ? (
+          {converting ? (
+            <span className="text-muted-foreground">XLSX 변환 중…</span>
+          ) : fileName ? (
             <span className="font-medium">{fileName}</span>
           ) : (
-            <span className="text-muted-foreground">CSV 파일 선택…</span>
+            <span className="text-muted-foreground">
+              CSV 또는 XLSX 파일 선택…
+            </span>
           )}
         </label>
       </section>
@@ -147,11 +177,11 @@ function UploadForm({
           type="button"
           variant="outline"
           onClick={onCancel}
-          disabled={pending}
+          disabled={pending || converting}
         >
           취소
         </Button>
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" disabled={pending || converting}>
           {pending ? "업로드 중…" : "업로드"}
         </Button>
       </DialogFooter>

@@ -21,7 +21,7 @@ export default async function OperationHomePage() {
         <div className="mx-auto max-w-6xl">
           <header className="mb-12 text-center">
             <h2 className="text-3xl font-semibold tracking-tight">
-              어느 반을 운영할까요?
+              어느 반을 담당하시나요?
             </h2>
             <p className="mt-3 text-sm text-muted-foreground">
               선택한 반의 대여·반납 화면이 열립니다

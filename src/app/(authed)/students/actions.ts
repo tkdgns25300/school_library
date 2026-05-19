@@ -207,6 +207,19 @@ export async function importStudentsCsv(
       continue;
     }
 
+    const { data: existing } = await supabase
+      .from("students")
+      .select("id")
+      .eq("name", name)
+      .eq("grade", grade)
+      .eq("class_section", classSection)
+      .maybeSingle();
+
+    if (existing) {
+      results.push({ row: rowNumber, name, error: "이미 등록된 학생" });
+      continue;
+    }
+
     const { error } = await supabase
       .from("students")
       .insert({ name, grade, class_section: classSection });
