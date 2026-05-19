@@ -8,15 +8,6 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Combobox,
-  ComboboxCollection,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-} from "@/components/ui/combobox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -64,21 +55,6 @@ export function LanguageColumn({
 
   const [mode, setMode] = useState<Mode>("lend");
   const [student, setStudent] = useState<Student | null>(null);
-  const [gradeFilter, setGradeFilter] = useState<number | "all">("all");
-
-  const filteredStudents = useMemo(() => {
-    if (gradeFilter === "all") return students;
-    return students.filter((s) => s.grade === gradeFilter);
-  }, [students, gradeFilter]);
-
-  function handleGradeChange(value: number | "all") {
-    setGradeFilter(value);
-    // Selected student may no longer match the new filter — clear it so the
-    // operator picks again from the narrowed list.
-    if (value !== "all" && student && student.grade !== value) {
-      setStudent(null);
-    }
-  }
   const [dueDate, setDueDate] = useState<Date>(() => {
     const d = new Date();
     d.setDate(d.getDate() + DEFAULT_DUE_DAYS);
@@ -249,68 +225,52 @@ export function LanguageColumn({
       <div className="space-y-4 border-y bg-muted/15 px-6 py-5">
         <ModeToggle mode={mode} onChange={setMode} language={language} />
 
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between gap-2">
-              <Label className="text-xs font-medium text-muted-foreground">
-                학생
-              </Label>
-              <GradeFilter
-                grades={sectionGrades}
-                value={gradeFilter}
-                onChange={handleGradeChange}
-                language={language}
-              />
-            </div>
-            <Combobox
-              items={filteredStudents}
-              itemToStringLabel={(s: Student) => `${s.grade}학년 ${s.name}`}
-              value={student}
-              onValueChange={(s) => setStudent(s as Student | null)}
-              disabled={scanning}
-            >
-              <ComboboxInput placeholder="학생 선택 또는 검색" />
-              <ComboboxContent>
-                <ComboboxList>
-                  <ComboboxCollection>
-                    {(s: Student) => (
-                      <ComboboxItem key={s.id} value={s}>
-                        {s.grade}학년 {s.name}
-                      </ComboboxItem>
-                    )}
-                  </ComboboxCollection>
-                  <ComboboxEmpty>일치하는 학생이 없습니다</ComboboxEmpty>
-                </ComboboxList>
-              </ComboboxContent>
-            </Combobox>
+        <div className="space-y-1.5">
+          <div className="flex items-baseline justify-between gap-2">
+            <Label className="text-xs font-medium text-muted-foreground">
+              학생
+            </Label>
+            {student ? (
+              <span className="text-xs font-semibold text-foreground">
+                {student.grade}학년 {student.name}
+              </span>
+            ) : null}
           </div>
-
-          {mode === "lend" ? (
-            <SelectField label="반납 예정일">
-              <Popover>
-                <PopoverTrigger
-                  className={cn(
-                    buttonVariants({ variant: "outline" }),
-                    "w-full justify-start gap-2 font-normal",
-                  )}
-                  disabled={scanning}
-                >
-                  <CalendarIcon className="size-4 text-muted-foreground" />
-                  {format(dueDate, "yyyy-MM-dd")}
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={dueDate}
-                    onSelect={(d) => {
-                      if (d) setDueDate(d);
-                    }}
-                  />
-                </PopoverContent>
-              </Popover>
-            </SelectField>
-          ) : null}
+          <StudentPicker
+            students={students}
+            sectionGrades={sectionGrades}
+            value={student}
+            onChange={setStudent}
+            disabled={scanning}
+            language={language}
+          />
         </div>
+
+        {mode === "lend" ? (
+          <SelectField label="반납 예정일">
+            <Popover>
+              <PopoverTrigger
+                className={cn(
+                  buttonVariants({ variant: "outline" }),
+                  "w-full justify-start gap-2 font-normal",
+                )}
+                disabled={scanning}
+              >
+                <CalendarIcon className="size-4 text-muted-foreground" />
+                {format(dueDate, "yyyy-MM-dd")}
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={dueDate}
+                  onSelect={(d) => {
+                    if (d) setDueDate(d);
+                  }}
+                />
+              </PopoverContent>
+            </Popover>
+          </SelectField>
+        ) : null}
 
         <div className="flex gap-2">
           <div className="relative flex-1">
@@ -547,43 +507,107 @@ function SelectField({
   );
 }
 
-function GradeFilter({
-  grades,
+function StudentPicker({
+  students,
+  sectionGrades,
   value,
   onChange,
+  disabled,
   language,
 }: {
-  grades: ReadonlyArray<number>;
-  value: number | "all";
-  onChange: (value: number | "all") => void;
+  students: Student[];
+  sectionGrades: ReadonlyArray<number>;
+  value: Student | null;
+  onChange: (s: Student) => void;
+  disabled?: boolean;
   language: Language;
 }) {
-  const activeFilled =
-    language === "ko"
-      ? "bg-ko text-ko-foreground"
-      : "bg-en text-en-foreground";
-  const options: ReadonlyArray<{ v: number | "all"; label: string }> = [
-    { v: "all", label: "전체" },
-    ...grades.map((g) => ({ v: g, label: `${g}` })),
-  ];
+  const studentsByGrade = useMemo(() => {
+    const map = new Map<number, Student[]>();
+    for (const g of sectionGrades) map.set(g, []);
+    for (const s of students) {
+      const list = map.get(s.grade);
+      if (list) list.push(s);
+    }
+    return map;
+  }, [students, sectionGrades]);
+
+  const [activeGrade, setActiveGrade] = useState<number>(
+    () => value?.grade ?? sectionGrades[0] ?? 0,
+  );
+
+  const activeStudents = studentsByGrade.get(activeGrade) ?? [];
+  const isKo = language === "ko";
+  const activeTabClass = isKo
+    ? "bg-ko text-ko-foreground"
+    : "bg-en text-en-foreground";
+  const selectedChipClass = isKo
+    ? "border-ko bg-ko text-ko-foreground hover:bg-ko/90"
+    : "border-en bg-en text-en-foreground hover:bg-en/90";
+
   return (
-    <div className="inline-flex overflow-hidden rounded-md border bg-card">
-      {options.map(({ v, label }, idx) => (
-        <button
-          key={String(v)}
-          type="button"
-          onClick={() => onChange(v)}
-          className={cn(
-            "min-w-7 px-2 py-0.5 text-[11px] font-medium transition-colors",
-            idx > 0 && "border-l",
-            value === v
-              ? activeFilled
-              : "text-muted-foreground hover:bg-muted/60",
-          )}
-        >
-          {label}
-        </button>
-      ))}
+    <div className="overflow-hidden rounded-lg border bg-card">
+      <div className="flex border-b bg-muted/15">
+        {sectionGrades.map((g) => {
+          const count = studentsByGrade.get(g)?.length ?? 0;
+          const isActive = activeGrade === g;
+          return (
+            <button
+              key={g}
+              type="button"
+              onClick={() => setActiveGrade(g)}
+              disabled={disabled}
+              className={cn(
+                "flex flex-1 items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors disabled:opacity-50",
+                isActive
+                  ? activeTabClass
+                  : "text-muted-foreground hover:bg-muted/40",
+              )}
+            >
+              <span>{g}학년</span>
+              <span
+                className={cn(
+                  "rounded-full px-1.5 text-[10px] font-semibold tabular-nums",
+                  isActive
+                    ? "bg-background/25 text-current"
+                    : "bg-muted text-muted-foreground/80",
+                )}
+              >
+                {count}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      <div className="max-h-44 overflow-y-auto p-2.5">
+        {activeStudents.length === 0 ? (
+          <div className="py-4 text-center text-xs text-muted-foreground">
+            {activeGrade}학년에 학생이 없습니다
+          </div>
+        ) : (
+          <div className="flex flex-wrap gap-1.5">
+            {activeStudents.map((s) => {
+              const isSelected = value?.id === s.id;
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => onChange(s)}
+                  disabled={disabled}
+                  className={cn(
+                    "rounded-md border px-2.5 py-1 text-sm transition-colors disabled:opacity-50",
+                    isSelected
+                      ? selectedChipClass
+                      : "border-border bg-card text-foreground hover:bg-muted/60",
+                  )}
+                >
+                  {s.name}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
