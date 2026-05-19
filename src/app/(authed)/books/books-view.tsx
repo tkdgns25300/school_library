@@ -186,19 +186,17 @@ export function BooksView({ books }: { books: BookWithStatus[] }) {
         </TabsList>
 
         <div className="mt-4 space-y-4">
-          <div className="rounded-xl border bg-card p-4 shadow-sm">
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="relative max-w-md flex-1">
-                <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="제목·저자·단계로 검색…"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-              <StatusToggle value={statusFilter} onChange={setStatusFilter} />
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative max-w-md flex-1">
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="제목·저자·단계로 검색…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9"
+              />
             </div>
+            <StatusToggle value={statusFilter} onChange={setStatusFilter} />
           </div>
 
           <TabsContent value="ko" className="m-0">

@@ -79,16 +79,14 @@ export function TeachersView({ teachers }: { teachers: Teacher[] }) {
           </div>
         </div>
 
-        <div className="rounded-xl border bg-card p-4 shadow-sm">
-          <div className="relative max-w-sm">
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="이름으로 검색…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
-            />
-          </div>
+        <div className="relative max-w-sm">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="이름으로 검색…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
         </div>
 
         <div className="overflow-hidden rounded-xl border bg-card shadow-sm">

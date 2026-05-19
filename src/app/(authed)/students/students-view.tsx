@@ -95,50 +95,48 @@ export function StudentsView({ students }: { students: StudentWithStats[] }) {
             </Button>
           </div>
         </div>
-        <div className="rounded-xl border bg-card p-4 shadow-sm">
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="relative max-w-sm flex-1">
-              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="이름으로 검색…"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-            <Select
-              value={gradeFilter}
-              onValueChange={(v) => setGradeFilter(v ?? "all")}
-            >
-              <SelectTrigger className="w-36">
-                <SelectValue>{gradeLabel}</SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">전체 학년</SelectItem>
-                {GRADES.map((g) => (
-                  <SelectItem key={g} value={String(g)}>
-                    {g}학년
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select
-              value={sectionFilter}
-              onValueChange={(v) => setSectionFilter(v ?? "all")}
-            >
-              <SelectTrigger className="w-36">
-                <SelectValue>{sectionLabel}</SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">전체 반</SelectItem>
-                {CLASS_SECTIONS.map((s) => (
-                  <SelectItem key={s.id} value={s.id}>
-                    {s.id}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative max-w-sm flex-1">
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="이름으로 검색…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9"
+            />
           </div>
+          <Select
+            value={gradeFilter}
+            onValueChange={(v) => setGradeFilter(v ?? "all")}
+          >
+            <SelectTrigger className="w-36">
+              <SelectValue>{gradeLabel}</SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">전체 학년</SelectItem>
+              {GRADES.map((g) => (
+                <SelectItem key={g} value={String(g)}>
+                  {g}학년
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
+            value={sectionFilter}
+            onValueChange={(v) => setSectionFilter(v ?? "all")}
+          >
+            <SelectTrigger className="w-36">
+              <SelectValue>{sectionLabel}</SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">전체 반</SelectItem>
+              {CLASS_SECTIONS.map((s) => (
+                <SelectItem key={s.id} value={s.id}>
+                  {s.id}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="overflow-hidden rounded-xl border bg-card shadow-sm">

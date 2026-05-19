@@ -113,40 +113,35 @@ export function LoansView({
         />
       </div>
 
-      <div className="rounded-xl border bg-card p-4 shadow-sm">
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="relative max-w-md flex-1">
-            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="학생·책 제목·바코드로 검색…"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
-            />
-          </div>
-          <LanguageToggle
-            value={languageFilter}
-            onChange={setLanguageFilter}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative max-w-md flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="학생·책 제목·바코드로 검색…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
           />
-          <Select
-            value={sectionFilter}
-            onValueChange={(v) => setSectionFilter(v ?? "all")}
-          >
-            <SelectTrigger className="w-36">
-              <SelectValue>
-                {sectionFilter === "all" ? "전체 반" : sectionFilter}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">전체 반</SelectItem>
-              {CLASS_SECTIONS.map((s) => (
-                <SelectItem key={s.id} value={s.id}>
-                  {s.id}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
+        <LanguageToggle value={languageFilter} onChange={setLanguageFilter} />
+        <Select
+          value={sectionFilter}
+          onValueChange={(v) => setSectionFilter(v ?? "all")}
+        >
+          <SelectTrigger className="w-36">
+            <SelectValue>
+              {sectionFilter === "all" ? "전체 반" : sectionFilter}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">전체 반</SelectItem>
+            {CLASS_SECTIONS.map((s) => (
+              <SelectItem key={s.id} value={s.id}>
+                {s.id}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="overflow-hidden rounded-xl border bg-card shadow-sm">
