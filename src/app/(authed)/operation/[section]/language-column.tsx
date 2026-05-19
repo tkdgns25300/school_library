@@ -2,7 +2,14 @@
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { format } from "date-fns";
-import { Barcode, Calendar as CalendarIcon, ScanLine, X } from "lucide-react";
+import {
+  Barcode,
+  Calendar as CalendarIcon,
+  Loader2,
+  ScanLine,
+  X,
+  XCircle,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -25,8 +32,11 @@ import type { ClassSection, Language } from "@/types/domain";
 import { lendBook, returnBook, type ScannedBook } from "./actions";
 
 const DEFAULT_DUE_DAYS = 7;
+const SCAN_FEEDBACK_MS = 1500;
 
 type Mode = "lend" | "return";
+
+type ScanFeedback = { kind: "error"; message: string; bookId: string };
 
 function overdueDays(dueDate: string): number {
   const today = new Date();
@@ -64,6 +74,7 @@ export function LanguageColumn({
   const [lastBook, setLastBook] = useState<ScannedBook | null>(null);
   const [scanning, startScan] = useTransition();
   const [scanGuideOpen, setScanGuideOpen] = useState(false);
+  const [scanFeedback, setScanFeedback] = useState<ScanFeedback | null>(null);
   // Bump on each scan-overlay open to force-remount the barcode input.
   // setBarcode("") alone is insufficient if an IME composition is in
   // flight (the DOM keeps the half-typed character even after state is
@@ -126,6 +137,14 @@ export function LanguageColumn({
     prevScanningRef.current = scanning;
   }, [scanning]);
 
+  // Clear the success/error banner after a short hold so the overlay
+  // returns to the ready state and the operator can scan the next book.
+  useEffect(() => {
+    if (!scanFeedback) return;
+    const timer = setTimeout(() => setScanFeedback(null), SCAN_FEEDBACK_MS);
+    return () => clearTimeout(timer);
+  }, [scanFeedback]);
+
   const isKo = language === "ko";
   const badgeClass = isKo
     ? "bg-ko text-ko-foreground"
@@ -144,27 +163,36 @@ export function LanguageColumn({
         return;
       }
 
+      const pickedStudent = student;
+      setScanFeedback(null);
       startScan(async () => {
         const result = await lendBook({
           section,
           language,
           bookId: value,
-          studentId: student.id,
+          studentId: pickedStudent.id,
           dueDate: format(dueDate, "yyyy-MM-dd"),
         });
         setBarcode("");
         if (result.error) {
-          toast.error(result.error);
           if (result.book) setLastBook(result.book);
+          setScanFeedback({
+            kind: "error",
+            message: result.error,
+            bookId: value,
+          });
           return;
         }
-        toast.success(`'${result.book?.title ?? value}' 대여 완료`);
         setLastBook(result.book ?? null);
         setScanGuideOpen(false);
+        toast.success(
+          `${pickedStudent.grade}학년 ${pickedStudent.name} — '${result.book?.title ?? value}' 대여 완료`,
+        );
       });
       return;
     }
 
+    setScanFeedback(null);
     startScan(async () => {
       const result = await returnBook({
         section,
@@ -173,13 +201,22 @@ export function LanguageColumn({
       });
       setBarcode("");
       if (result.error) {
-        toast.error(result.error);
         if (result.book) setLastBook(result.book);
+        setScanFeedback({
+          kind: "error",
+          message: result.error,
+          bookId: value,
+        });
         return;
       }
-      toast.success(`'${result.book?.title ?? value}' 반납 완료`);
       setLastBook(result.book ?? null);
       setScanGuideOpen(false);
+      const who = result.borrower
+        ? `${result.borrower.grade}학년 ${result.borrower.name} — `
+        : "";
+      toast.success(
+        `${who}'${result.book?.title ?? value}' 반납 완료`,
+      );
     });
   }
 
@@ -222,54 +259,56 @@ export function LanguageColumn({
         overdueCount={overdueLoans.length}
       />
 
-      <div className="space-y-4 border-y bg-muted/15 px-6 py-5">
-        <ModeToggle mode={mode} onChange={setMode} language={language} />
+      <ModeTabs mode={mode} onChange={setMode} language={language} />
 
-        <div className="space-y-1.5">
-          <div className="flex items-baseline justify-between gap-2">
-            <Label className="text-xs font-medium text-muted-foreground">
-              학생
-            </Label>
-            {student ? (
-              <span className="text-xs font-semibold text-foreground">
-                {student.grade}학년 {student.name}
-              </span>
-            ) : null}
-          </div>
-          <StudentPicker
-            students={students}
-            sectionGrades={sectionGrades}
-            value={student}
-            onChange={setStudent}
-            disabled={scanning}
-            language={language}
-          />
-        </div>
-
+      <div className="space-y-7 bg-muted/15 px-6 py-8">
         {mode === "lend" ? (
-          <SelectField label="반납 예정일">
-            <Popover>
-              <PopoverTrigger
-                className={cn(
-                  buttonVariants({ variant: "outline" }),
-                  "w-full justify-start gap-2 font-normal",
-                )}
+          <>
+            <div className="space-y-2.5">
+              <div className="flex items-baseline justify-between gap-2">
+                <Label className="text-xs font-medium text-muted-foreground">
+                  학생
+                </Label>
+                {student ? (
+                  <span className="text-xs font-semibold text-foreground">
+                    {student.grade}학년 {student.name}
+                  </span>
+                ) : null}
+              </div>
+              <StudentPicker
+                students={students}
+                sectionGrades={sectionGrades}
+                value={student}
+                onChange={setStudent}
                 disabled={scanning}
-              >
-                <CalendarIcon className="size-4 text-muted-foreground" />
-                {format(dueDate, "yyyy-MM-dd")}
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={dueDate}
-                  onSelect={(d) => {
-                    if (d) setDueDate(d);
-                  }}
-                />
-              </PopoverContent>
-            </Popover>
-          </SelectField>
+                language={language}
+              />
+            </div>
+
+            <SelectField label="반납 예정일">
+              <Popover>
+                <PopoverTrigger
+                  className={cn(
+                    buttonVariants({ variant: "outline" }),
+                    "h-12 w-full justify-start gap-2 text-base font-normal",
+                  )}
+                  disabled={scanning}
+                >
+                  <CalendarIcon className="size-5 text-muted-foreground" />
+                  {format(dueDate, "yyyy-MM-dd")}
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={dueDate}
+                    onSelect={(d) => {
+                      if (d) setDueDate(d);
+                    }}
+                  />
+                </PopoverContent>
+              </Popover>
+            </SelectField>
+          </>
         ) : null}
 
         <div className="flex gap-2">
@@ -306,10 +345,8 @@ export function LanguageColumn({
 
       {scanGuideOpen ? (
         <ScanGuideOverlay
-          mode={mode}
-          language={language}
-          barcode={barcode}
           scanning={scanning}
+          feedback={scanFeedback}
           onClose={closeScanGuide}
         />
       ) : null}
@@ -318,23 +355,14 @@ export function LanguageColumn({
 }
 
 function ScanGuideOverlay({
-  mode,
-  language,
-  barcode,
   scanning,
+  feedback,
   onClose,
 }: {
-  mode: Mode;
-  language: Language;
-  barcode: string;
   scanning: boolean;
+  feedback: ScanFeedback | null;
   onClose: () => void;
 }) {
-  const isKo = language === "ko";
-  const accentBg = isKo ? "bg-ko/12" : "bg-en/12";
-  const accentText = isKo ? "text-ko" : "text-en";
-  const ringClass = isKo ? "ring-ko/30" : "ring-en/30";
-
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -349,64 +377,68 @@ function ScanGuideOverlay({
     >
       <div className="pointer-events-none absolute inset-0 bg-foreground/30 backdrop-blur-[2px]" />
       <div
-        className="relative w-full max-w-sm overflow-hidden rounded-2xl bg-card shadow-2xl"
+        className="relative w-full max-w-md overflow-hidden rounded-2xl bg-card shadow-2xl"
         onMouseDown={(e) => e.stopPropagation()}
       >
         <button
           type="button"
           onClick={onClose}
           aria-label="닫기"
-          className="absolute right-3 top-3 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          className="absolute right-4 top-4 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
         >
-          <X className="size-4" />
+          <X className="size-5" />
         </button>
 
-        <div className="flex flex-col items-center gap-5 px-8 pb-7 pt-9 text-center">
-          <div
-            className={cn(
-              "relative flex size-20 items-center justify-center rounded-full ring-8",
-              accentBg,
-              ringClass,
-            )}
-          >
-            <ScanLine className={cn("size-10", accentText)} />
-            {scanning ? null : (
-              <span
-                className={cn(
-                  "absolute inset-0 animate-ping rounded-full opacity-40",
-                  accentBg,
-                )}
-              />
-            )}
-          </div>
+        <ScanOverlayBody scanning={scanning} feedback={feedback} />
+      </div>
+    </div>
+  );
+}
 
-          <div className="space-y-1.5">
-            <h3 className="text-lg font-semibold">
-              {mode === "lend" ? "대여 바코드를 스캔하세요" : "반납 바코드를 스캔하세요"}
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              스캐너로 책 바코드를 읽거나 직접 입력 후 Enter
-            </p>
-          </div>
+function ScanOverlayBody({
+  scanning,
+  feedback,
+}: {
+  scanning: boolean;
+  feedback: ScanFeedback | null;
+}) {
+  if (scanning) {
+    return (
+      <div className="flex flex-col items-center gap-6 px-10 pb-12 pt-14 text-center">
+        <div className="flex size-28 items-center justify-center rounded-full bg-muted/40">
+          <Loader2 className="size-16 animate-spin text-muted-foreground" />
+        </div>
+        <h3 className="text-2xl font-bold">처리 중…</h3>
+      </div>
+    );
+  }
 
-          <div
-            className={cn(
-              "w-full rounded-lg border bg-muted/30 px-4 py-3 font-mono text-base tracking-[0.2em]",
-              barcode ? "text-foreground" : "text-muted-foreground/60",
-            )}
-          >
-            {barcode || "BK00001"}
-            <span className="ml-0.5 inline-block h-4 w-px animate-pulse bg-current align-middle" />
-          </div>
-
-          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-            <kbd className="rounded border bg-muted px-1.5 py-0.5 font-mono text-[10px]">
-              ESC
-            </kbd>
-            <span>또는 바깥을 눌러 닫기</span>
-          </div>
+  if (feedback?.kind === "error") {
+    return (
+      <div className="flex flex-col items-center gap-6 px-10 pb-10 pt-12 text-center">
+        <div className="flex size-28 items-center justify-center rounded-full bg-destructive/12 ring-8 ring-destructive/25">
+          <XCircle className="size-16 text-destructive" strokeWidth={2.2} />
+        </div>
+        <div className="space-y-1.5">
+          <h3 className="text-xl font-bold text-destructive">
+            {feedback.message}
+          </h3>
+          <p className="font-mono text-sm text-muted-foreground">
+            {feedback.bookId}
+          </p>
         </div>
       </div>
+    );
+  }
+
+  // ready — vermilion-tinted scan icon, single line copy.
+  return (
+    <div className="flex flex-col items-center gap-7 px-10 pb-12 pt-14 text-center">
+      <div className="relative flex size-28 items-center justify-center rounded-full bg-orange-100 ring-8 ring-orange-200/60">
+        <ScanLine className="size-16 text-orange-500" strokeWidth={2.2} />
+        <span className="absolute inset-0 animate-ping rounded-full bg-orange-300/40" />
+      </div>
+      <h3 className="text-2xl font-bold tracking-tight">바코드를 스캔하세요</h3>
     </div>
   );
 }
@@ -422,8 +454,17 @@ function ColumnHeader({
   activeCount: number;
   overdueCount: number;
 }) {
+  const isKo = language === "ko";
+  const headerBg = isKo
+    ? "bg-gradient-to-br from-ko/12 via-ko/5 to-transparent"
+    : "bg-gradient-to-br from-en/12 via-en/5 to-transparent";
   return (
-    <div className="flex items-center justify-between gap-4 px-6 py-5">
+    <div
+      className={cn(
+        "flex items-center justify-between gap-4 px-6 py-5",
+        headerBg,
+      )}
+    >
       <div className="flex items-center gap-3">
         <span
           className={cn(
@@ -452,7 +493,7 @@ function ColumnHeader({
   );
 }
 
-function ModeToggle({
+function ModeTabs({
   mode,
   onChange,
   language,
@@ -461,31 +502,44 @@ function ModeToggle({
   onChange: (mode: Mode) => void;
   language: Language;
 }) {
-  const filledClass =
-    language === "ko"
-      ? "bg-ko text-ko-foreground hover:bg-ko/90"
-      : "bg-en text-en-foreground hover:bg-en/90";
+  const isKo = language === "ko";
+  const activeTextClass = isKo ? "text-ko" : "text-en";
+  const activeBarClass = isKo ? "bg-ko" : "bg-en";
+
+  const tabs: ReadonlyArray<{ id: Mode; label: string }> = [
+    { id: "lend", label: "대여" },
+    { id: "return", label: "반납" },
+  ];
 
   return (
-    <div className="flex gap-2">
-      <Button
-        type="button"
-        variant={mode === "lend" ? "default" : "outline"}
-        size="sm"
-        onClick={() => onChange("lend")}
-        className={cn("min-w-16", mode === "lend" && filledClass)}
-      >
-        대여
-      </Button>
-      <Button
-        type="button"
-        variant={mode === "return" ? "default" : "outline"}
-        size="sm"
-        onClick={() => onChange("return")}
-        className={cn("min-w-16", mode === "return" && filledClass)}
-      >
-        반납
-      </Button>
+    <div className="grid grid-cols-2 border-y">
+      {tabs.map((tab) => {
+        const isActive = mode === tab.id;
+        return (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => onChange(tab.id)}
+            className={cn(
+              "relative px-4 py-3.5 text-base font-semibold transition-colors",
+              isActive
+                ? activeTextClass
+                : "text-muted-foreground hover:bg-muted/40 hover:text-foreground",
+            )}
+            aria-pressed={isActive}
+          >
+            {tab.label}
+            {isActive ? (
+              <span
+                className={cn(
+                  "absolute inset-x-4 -bottom-px h-0.5 rounded-full",
+                  activeBarClass,
+                )}
+              />
+            ) : null}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -498,7 +552,7 @@ function SelectField({
   children: React.ReactNode;
 }) {
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-2.5">
       <Label className="text-xs font-medium text-muted-foreground">
         {label}
       </Label>
@@ -538,16 +592,15 @@ function StudentPicker({
 
   const activeStudents = studentsByGrade.get(activeGrade) ?? [];
   const isKo = language === "ko";
-  const activeTabClass = isKo
-    ? "bg-ko text-ko-foreground"
-    : "bg-en text-en-foreground";
+  const activeUnderlineClass = isKo ? "text-ko" : "text-en";
+  const activeUnderlineBar = isKo ? "bg-ko" : "bg-en";
   const selectedChipClass = isKo
     ? "border-ko bg-ko text-ko-foreground hover:bg-ko/90"
     : "border-en bg-en text-en-foreground hover:bg-en/90";
 
   return (
-    <div className="overflow-hidden rounded-lg border bg-card">
-      <div className="flex border-b bg-muted/15">
+    <div className="space-y-4">
+      <div className="flex border-b">
         {sectionGrades.map((g) => {
           const count = studentsByGrade.get(g)?.length ?? 0;
           const isActive = activeGrade === g;
@@ -558,10 +611,10 @@ function StudentPicker({
               onClick={() => setActiveGrade(g)}
               disabled={disabled}
               className={cn(
-                "flex flex-1 items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors disabled:opacity-50",
+                "relative inline-flex flex-1 items-center justify-center gap-1.5 px-3 py-2.5 text-sm font-medium transition-colors disabled:opacity-50",
                 isActive
-                  ? activeTabClass
-                  : "text-muted-foreground hover:bg-muted/40",
+                  ? activeUnderlineClass
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               <span>{g}학년</span>
@@ -569,45 +622,51 @@ function StudentPicker({
                 className={cn(
                   "rounded-full px-1.5 text-[10px] font-semibold tabular-nums",
                   isActive
-                    ? "bg-background/25 text-current"
+                    ? cn("bg-current text-background opacity-90")
                     : "bg-muted text-muted-foreground/80",
                 )}
               >
                 {count}
               </span>
+              {isActive ? (
+                <span
+                  className={cn(
+                    "absolute inset-x-6 -bottom-px h-0.5 rounded-full",
+                    activeUnderlineBar,
+                  )}
+                />
+              ) : null}
             </button>
           );
         })}
       </div>
-      <div className="max-h-44 overflow-y-auto p-2.5">
-        {activeStudents.length === 0 ? (
-          <div className="py-4 text-center text-xs text-muted-foreground">
-            {activeGrade}학년에 학생이 없습니다
-          </div>
-        ) : (
-          <div className="flex flex-wrap gap-1.5">
-            {activeStudents.map((s) => {
-              const isSelected = value?.id === s.id;
-              return (
-                <button
-                  key={s.id}
-                  type="button"
-                  onClick={() => onChange(s)}
-                  disabled={disabled}
-                  className={cn(
-                    "rounded-md border px-2.5 py-1 text-sm transition-colors disabled:opacity-50",
-                    isSelected
-                      ? selectedChipClass
-                      : "border-border bg-card text-foreground hover:bg-muted/60",
-                  )}
-                >
-                  {s.name}
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </div>
+      {activeStudents.length === 0 ? (
+        <div className="py-2 text-xs text-muted-foreground">
+          {activeGrade}학년에 학생이 없습니다
+        </div>
+      ) : (
+        <div className="flex flex-wrap gap-1.5">
+          {activeStudents.map((s) => {
+            const isSelected = value?.id === s.id;
+            return (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => onChange(s)}
+                disabled={disabled}
+                className={cn(
+                  "rounded-full border px-3 py-1 text-sm transition-colors disabled:opacity-50",
+                  isSelected
+                    ? selectedChipClass
+                    : "border-border bg-background text-foreground hover:bg-muted/60",
+                )}
+              >
+                {s.name}
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
