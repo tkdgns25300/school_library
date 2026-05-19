@@ -30,8 +30,6 @@ import type { Language } from "@/types/domain";
 
 import { LoanDetailDialog } from "./loan-detail-dialog";
 
-type Teacher = { id: string; name: string };
-
 function overdueDays(dueDate: string): number {
   const today = todayIso();
   if (dueDate >= today) return 0;
@@ -40,14 +38,12 @@ function overdueDays(dueDate: string): number {
 
 export function LoansView({
   loans,
-  teachers,
   totalActive,
   overdueCount,
   maxOverdueDays,
   dueTodayCount,
 }: {
   loans: LoanRow[];
-  teachers: Teacher[];
   totalActive: number;
   overdueCount: number;
   maxOverdueDays: number;
@@ -184,7 +180,6 @@ export function LoansView({
 
       <LoanDetailDialog
         loan={selectedLoan}
-        teachers={teachers}
         otherActiveCount={otherActiveCount}
         open={selectedLoan !== null}
         onOpenChange={(open) => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useTransition } from "react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -13,14 +13,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { todayIso } from "@/lib/date";
 import type { LoanRow } from "@/lib/queries/loans";
 import { cn } from "@/lib/utils";
@@ -28,28 +20,18 @@ import type { Language } from "@/types/domain";
 
 import { returnLoanById } from "./actions";
 
-type Teacher = { id: string; name: string };
-
 export function LoanDetailDialog({
   loan,
-  teachers,
   otherActiveCount,
   open,
   onOpenChange,
 }: {
   loan: LoanRow | null;
-  teachers: Teacher[];
   otherActiveCount: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const [teacherId, setTeacherId] = useState<string | undefined>();
   const [pending, startTransition] = useTransition();
-
-  useEffect(() => {
-    if (open) setTeacherId(undefined);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, loan?.id]);
 
   if (!loan) return null;
 
@@ -65,15 +47,8 @@ export function LoanDetailDialog({
 
   function handleReturn() {
     if (!loan) return;
-    if (!teacherId) {
-      toast.error("담당 교사를 선택해주세요");
-      return;
-    }
     startTransition(async () => {
-      const result = await returnLoanById({
-        loanId: loan.id,
-        teacherId,
-      });
+      const result = await returnLoanById({ loanId: loan.id });
       if (result.error) {
         toast.error(result.error);
         return;
@@ -162,28 +137,6 @@ export function LoanDetailDialog({
             tone={isOverdue ? "alert" : undefined}
           />
           <InfoBox label="언어" value={loan.book.language.toUpperCase()} />
-        </div>
-
-        <div className="space-y-1.5">
-          <Label className="text-xs font-medium text-muted-foreground">
-            반납 담당 교사
-          </Label>
-          <Select
-            value={teacherId}
-            onValueChange={(v) => setTeacherId(v ?? undefined)}
-            disabled={pending}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="교사 선택" />
-            </SelectTrigger>
-            <SelectContent>
-              {teachers.map((t) => (
-                <SelectItem key={t.id} value={t.id}>
-                  {t.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
 
         <DialogFooter>

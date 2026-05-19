@@ -8,7 +8,7 @@ import { LoansView } from "./loans-view";
 
 export default async function LoansPage() {
   "use cache";
-  cacheTag("loans", "students", "books", "teachers");
+  cacheTag("loans", "students", "books");
   cacheLife("days");
 
   const data = await getLoansForMonitoring(todayIso());
@@ -20,7 +20,6 @@ export default async function LoansPage() {
         <div className="mx-auto max-w-7xl">
           <LoansView
             loans={data.loans}
-            teachers={data.teachers}
             totalActive={data.totalActive}
             overdueCount={data.overdueCount}
             maxOverdueDays={data.maxOverdueDays}

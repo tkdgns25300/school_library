@@ -11,10 +11,8 @@ export type ReturnState = {
 
 export async function returnLoanById(input: {
   loanId: string;
-  teacherId: string;
 }): Promise<ReturnState> {
   if (!input.loanId) return { error: "대여 정보가 없습니다." };
-  if (!input.teacherId) return { error: "담당 교사를 선택해주세요." };
 
   const supabase = await createClient();
 
@@ -31,7 +29,6 @@ export async function returnLoanById(input: {
     .from("loans")
     .update({
       returned_at: new Date().toISOString(),
-      returned_by_teacher_id: input.teacherId,
     })
     .eq("id", input.loanId);
 

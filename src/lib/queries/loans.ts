@@ -22,7 +22,6 @@ export type LoanRow = {
 
 export type LoansMonitoringData = {
   loans: LoanRow[];
-  teachers: { id: string; name: string }[];
   totalActive: number;
   overdueCount: number;
   maxOverdueDays: number;
@@ -33,7 +32,7 @@ export async function getLoansForMonitoring(
   today: string,
 ): Promise<LoansMonitoringData> {
   const supabase = createServiceClient();
-  const [loansRes, studentsRes, booksRes, teachersRes] = await Promise.all([
+  const [loansRes, studentsRes, booksRes] = await Promise.all([
     supabase
       .from("loans")
       .select("id, loaned_at, due_date, book_id, student_id")
@@ -42,7 +41,6 @@ export async function getLoansForMonitoring(
     supabase
       .from("books")
       .select("id, title, author, language, cover_image_url"),
-    supabase.from("teachers").select("id, name").order("name"),
   ]);
 
   const studentMap = new Map(
@@ -79,7 +77,6 @@ export async function getLoansForMonitoring(
 
   return {
     loans: sorted,
-    teachers: teachersRes.data ?? [],
     totalActive: sorted.length,
     overdueCount: overdue.length,
     maxOverdueDays,
