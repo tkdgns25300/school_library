@@ -22,7 +22,7 @@ export default function LoginForm() {
     <form action={formAction}>
       <FieldGroup className="gap-5">
         <Field>
-          <FieldLabel htmlFor="email">이메일</FieldLabel>
+          <FieldLabel htmlFor="email">관리자 계정</FieldLabel>
           <Input
             id="email"
             name="email"
