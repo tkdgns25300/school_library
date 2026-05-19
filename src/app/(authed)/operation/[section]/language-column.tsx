@@ -8,6 +8,15 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import {
+  Combobox,
+  ComboboxCollection,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@/components/ui/combobox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -15,13 +24,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { LANGUAGE_LABEL } from "@/constants/languages";
 import { todayIso } from "@/lib/date";
 import type { ActiveLoan, Student, Teacher } from "@/lib/queries/operation";
@@ -57,8 +59,8 @@ export function LanguageColumn({
   loans: ActiveLoan[];
 }) {
   const [mode, setMode] = useState<Mode>("lend");
-  const [studentId, setStudentId] = useState<string | undefined>();
-  const [teacherId, setTeacherId] = useState<string | undefined>();
+  const [student, setStudent] = useState<Student | null>(null);
+  const [teacher, setTeacher] = useState<Teacher | null>(null);
   const [dueDate, setDueDate] = useState<Date>(() => {
     const d = new Date();
     d.setDate(d.getDate() + DEFAULT_DUE_DAYS);
@@ -82,11 +84,11 @@ export function LanguageColumn({
     if (value === "") return;
 
     if (mode === "lend") {
-      if (!studentId) {
+      if (!student) {
         toast.error("학생을 먼저 선택해주세요");
         return;
       }
-      if (!teacherId) {
+      if (!teacher) {
         toast.error("담당 교사를 먼저 선택해주세요");
         return;
       }
@@ -96,8 +98,8 @@ export function LanguageColumn({
           section,
           language,
           bookId: value,
-          studentId,
-          teacherId,
+          studentId: student.id,
+          teacherId: teacher.id,
           dueDate: format(dueDate, "yyyy-MM-dd"),
         });
         setBarcode("");
@@ -113,7 +115,7 @@ export function LanguageColumn({
       return;
     }
 
-    if (!teacherId) {
+    if (!teacher) {
       toast.error("담당 교사를 먼저 선택해주세요");
       return;
     }
@@ -122,7 +124,7 @@ export function LanguageColumn({
         section,
         language,
         bookId: value,
-        teacherId,
+        teacherId: teacher.id,
       });
       setBarcode("");
       barcodeRef.current?.focus();
@@ -156,22 +158,27 @@ export function LanguageColumn({
 
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           <SelectField label="학생">
-            <Select
-              value={studentId}
-              onValueChange={(v) => setStudentId(v ?? undefined)}
+            <Combobox
+              items={students}
+              itemToStringLabel={(s: Student) => `${s.grade}학년 ${s.name}`}
+              value={student}
+              onValueChange={(s) => setStudent(s as Student | null)}
               disabled={scanning}
             >
-              <SelectTrigger>
-                <SelectValue placeholder="학생 선택" />
-              </SelectTrigger>
-              <SelectContent>
-                {students.map((s) => (
-                  <SelectItem key={s.id} value={s.id}>
-                    {s.grade}학년 {s.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <ComboboxInput placeholder="학생 선택 또는 검색" />
+              <ComboboxContent>
+                <ComboboxList>
+                  <ComboboxCollection>
+                    {(s: Student) => (
+                      <ComboboxItem key={s.id} value={s}>
+                        {s.grade}학년 {s.name}
+                      </ComboboxItem>
+                    )}
+                  </ComboboxCollection>
+                  <ComboboxEmpty>일치하는 학생이 없습니다</ComboboxEmpty>
+                </ComboboxList>
+              </ComboboxContent>
+            </Combobox>
           </SelectField>
 
           {mode === "lend" ? (
@@ -202,22 +209,27 @@ export function LanguageColumn({
         </div>
 
         <SelectField label="담당 교사">
-          <Select
-            value={teacherId}
-            onValueChange={(v) => setTeacherId(v ?? undefined)}
+          <Combobox
+            items={teachers}
+            itemToStringLabel={(t: Teacher) => t.name}
+            value={teacher}
+            onValueChange={(t) => setTeacher(t as Teacher | null)}
             disabled={scanning}
           >
-            <SelectTrigger>
-              <SelectValue placeholder="교사 선택" />
-            </SelectTrigger>
-            <SelectContent>
-              {teachers.map((t) => (
-                <SelectItem key={t.id} value={t.id}>
-                  {t.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            <ComboboxInput placeholder="교사 선택 또는 검색" />
+            <ComboboxContent>
+              <ComboboxList>
+                <ComboboxCollection>
+                  {(t: Teacher) => (
+                    <ComboboxItem key={t.id} value={t}>
+                      {t.name}
+                    </ComboboxItem>
+                  )}
+                </ComboboxCollection>
+                <ComboboxEmpty>일치하는 교사가 없습니다</ComboboxEmpty>
+              </ComboboxList>
+            </ComboboxContent>
+          </Combobox>
         </SelectField>
 
         <div className="flex gap-2">
