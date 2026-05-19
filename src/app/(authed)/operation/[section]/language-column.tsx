@@ -68,6 +68,11 @@ export function LanguageColumn({
   const [lastBook, setLastBook] = useState<ScannedBook | null>(null);
   const [scanning, startScan] = useTransition();
   const [scanGuideOpen, setScanGuideOpen] = useState(false);
+  // Bump on each scan-overlay open to force-remount the barcode input.
+  // setBarcode("") alone is insufficient if an IME composition is in
+  // flight (the DOM keeps the half-typed character even after state is
+  // cleared), and the leftover ends up prepended to the next scan.
+  const [barcodeKey, setBarcodeKey] = useState(0);
   const barcodeRef = useRef<HTMLInputElement>(null);
 
   function focusBarcode() {
@@ -82,9 +87,11 @@ export function LanguageColumn({
       toast.error("학생을 먼저 선택해주세요");
       return;
     }
-    // Clear anything residual in the input — a stray pre-scan keystroke would
-    // otherwise concatenate with the next scan (BK00001 → BBK00001).
+    // Tear down any in-flight IME composition and reset the input fully
+    // so the next scan starts from a clean DOM/state pair (BBK00001 bug).
+    barcodeRef.current?.blur();
     setBarcode("");
+    setBarcodeKey((k) => k + 1);
     setScanGuideOpen(true);
   }
 
@@ -254,9 +261,16 @@ export function LanguageColumn({
           <div className="relative flex-1">
             <Barcode className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-muted-foreground" />
             <Input
+              key={barcodeKey}
               ref={barcodeRef}
               value={barcode}
-              onChange={(e) => setBarcode(normalizeBarcodeInput(e.target.value))}
+              onChange={(e) => {
+                if ((e.nativeEvent as InputEvent).isComposing) return;
+                setBarcode(normalizeBarcodeInput(e.target.value));
+              }}
+              onCompositionEnd={(e) => {
+                setBarcode(normalizeBarcodeInput(e.currentTarget.value));
+              }}
               onKeyDown={handleBarcodeKeyDown}
               placeholder="BK00001"
               autoFocus
