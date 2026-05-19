@@ -59,28 +59,42 @@ export function StudentsView({ students }: { students: StudentWithStats[] }) {
   const sectionLabel =
     sectionFilter === "all" ? "전체 반" : sectionFilter;
 
+  const isFiltered = filtered.length !== students.length;
+
   return (
     <>
-      <div className="mb-6 flex items-end justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">학생 명단</h2>
-          <p className="mt-1.5 text-sm text-muted-foreground">
-            전체 {students.length}명 · 학년·반 순으로 정렬
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => setCsvOpen(true)}>
-            <Upload className="size-4" />
-            CSV 업로드
-          </Button>
-          <Button onClick={() => setFormDialog({ type: "create" })}>
-            <UserPlus className="size-4" />
-            학생 추가
-          </Button>
-        </div>
-      </div>
-
       <div className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-baseline gap-1.5">
+            {isFiltered ? (
+              <>
+                <span className="text-2xl font-bold tabular-nums text-primary">
+                  {filtered.length}
+                </span>
+                <span className="text-sm text-muted-foreground">
+                  / 전체 {students.length}명
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="text-2xl font-bold tabular-nums">
+                  {students.length}
+                </span>
+                <span className="text-sm text-muted-foreground">명 학생</span>
+              </>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => setCsvOpen(true)}>
+              <Upload className="size-4" />
+              CSV 업로드
+            </Button>
+            <Button onClick={() => setFormDialog({ type: "create" })}>
+              <UserPlus className="size-4" />
+              학생 추가
+            </Button>
+          </div>
+        </div>
         <div className="rounded-xl border bg-card p-4 shadow-sm">
           <div className="flex flex-wrap items-center gap-2">
             <div className="relative max-w-sm flex-1">
@@ -134,9 +148,9 @@ export function StudentsView({ students }: { students: StudentWithStats[] }) {
                 <TableHead className="w-20">학년</TableHead>
                 <TableHead className="w-32">반</TableHead>
                 <TableHead>이름</TableHead>
-                <TableHead className="w-52">한국어 (대여 / 연체)</TableHead>
-                <TableHead className="w-52">영어 (대여 / 연체)</TableHead>
-                <TableHead className="w-28 text-right">액션</TableHead>
+                <TableHead className="w-44">한국어</TableHead>
+                <TableHead className="w-44">영어</TableHead>
+                <TableHead className="w-24 text-right" />
               </TableRow>
             </TableHeader>
             <TableBody>
