@@ -5,7 +5,6 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 
 import { PageHeader } from "@/components/layout/page-header";
-import { Badge } from "@/components/ui/badge";
 import { CLASS_SECTIONS } from "@/constants/class-sections";
 import { todayIso } from "@/lib/date";
 import { getOperationData } from "@/lib/queries/operation";
@@ -35,33 +34,41 @@ export default async function OperationSectionPage({
 
   return (
     <>
-      <PageHeader
-        title="대여 데스크"
-        subtitle={`${sectionMeta.label} · ${sectionMeta.description}`}
-      />
+      <PageHeader title="대여 데스크" />
       <main className="flex-1 bg-muted/30 px-6 py-8">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-6 flex flex-wrap items-center gap-3">
+          {/* Hero header */}
+          <div className="mb-8">
             <Link
               href="/"
-              className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
               <ArrowLeft className="size-4" />
               반 선택
             </Link>
-            <span className="text-muted-foreground">·</span>
-            <Badge variant="secondary">{sectionMeta.id}</Badge>
-            <span className="text-sm text-muted-foreground">
-              학생 {data.students.length}명 · 대여 중 {data.totalActive}권
-              {data.overdueCount > 0 ? (
-                <>
-                  {" · "}
-                  <span className="font-semibold text-destructive">
-                    연체 {data.overdueCount}권
-                  </span>
-                </>
-              ) : null}
-            </span>
+            <div className="mt-4 flex flex-wrap items-baseline justify-between gap-4">
+              <h2 className="text-3xl font-bold tracking-tight">
+                {sectionMeta.label}
+              </h2>
+              <div className="text-sm text-muted-foreground">
+                학생{" "}
+                <span className="font-semibold text-foreground">
+                  {data.students.length}명
+                </span>{" "}
+                · 대여 중{" "}
+                <span className="font-semibold text-foreground">
+                  {data.totalActive}권
+                </span>
+                {data.overdueCount > 0 ? (
+                  <>
+                    {" · "}
+                    <span className="font-semibold text-destructive">
+                      연체 {data.overdueCount}권
+                    </span>
+                  </>
+                ) : null}
+              </div>
+            </div>
           </div>
 
           <Suspense fallback={null}>

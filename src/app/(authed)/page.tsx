@@ -35,7 +35,6 @@ export default async function OperationHomePage() {
                   key={section.id}
                   id={section.id}
                   label={section.label}
-                  description={section.description}
                   studentCount={stats?.studentCount ?? 0}
                   activeCount={stats?.activeCount ?? 0}
                   overdueCount={stats?.overdueCount ?? 0}

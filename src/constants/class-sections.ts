@@ -1,13 +1,12 @@
 import type { ClassSection, Grade } from "@/types/domain";
 
 export const CLASS_SECTIONS = [
-  { id: "junior 1", label: "Junior 1", description: "1~3학년 일부", grades: [1, 2, 3] },
-  { id: "junior 2", label: "Junior 2", description: "1~3학년 일부", grades: [1, 2, 3] },
-  { id: "senior 1", label: "Senior 1", description: "4~6학년 전부", grades: [4, 5, 6] },
+  { id: "junior 1", label: "Junior 1", grades: [1, 2, 3] },
+  { id: "junior 2", label: "Junior 2", grades: [1, 2, 3] },
+  { id: "senior 1", label: "Senior 1", grades: [4, 5, 6] },
 ] as const satisfies ReadonlyArray<{
   id: ClassSection;
   label: string;
-  description: string;
   grades: ReadonlyArray<Grade>;
 }>;
 

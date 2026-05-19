@@ -7,7 +7,6 @@ import { cn } from "@/lib/utils";
 type Props = {
   id: string;
   label: string;
-  description: string;
   studentCount: number;
   activeCount: number;
   overdueCount: number;
@@ -16,7 +15,6 @@ type Props = {
 export function ClassCard({
   id,
   label,
-  description,
   studentCount,
   activeCount,
   overdueCount,
@@ -33,7 +31,6 @@ export function ClassCard({
           <div className="absolute -bottom-12 -left-6 size-24 rounded-full bg-white/[0.06] blur-2xl" />
           <div className="relative">
             <h3 className="text-3xl font-bold tracking-tight">{label}</h3>
-            <p className="mt-1.5 text-sm text-white/70">{description}</p>
           </div>
         </div>
 

@@ -2,7 +2,7 @@
 
 import { useRef, useState, useTransition } from "react";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, ScanLine } from "lucide-react";
+import { Barcode, Calendar as CalendarIcon, ScanLine } from "lucide-react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +22,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import { LANGUAGE_LABEL } from "@/constants/languages";
 import { todayIso } from "@/lib/date";
 import type { ActiveLoan, Student, Teacher } from "@/lib/queries/operation";
@@ -71,7 +70,6 @@ export function LanguageColumn({
   const barcodeRef = useRef<HTMLInputElement>(null);
 
   const isKo = language === "ko";
-  const accentClass = isKo ? "border-l-ko" : "border-l-en";
   const badgeClass = isKo
     ? "bg-ko text-ko-foreground"
     : "bg-en text-en-foreground";
@@ -145,12 +143,7 @@ export function LanguageColumn({
   }
 
   return (
-    <div
-      className={cn(
-        "overflow-hidden rounded-xl border border-l-4 bg-card shadow-sm",
-        accentClass,
-      )}
-    >
+    <div className="overflow-hidden rounded-2xl border bg-card shadow-sm">
       <ColumnHeader
         language={language}
         badgeClass={badgeClass}
@@ -158,10 +151,8 @@ export function LanguageColumn({
         overdueCount={overdueLoans.length}
       />
 
-      <Separator />
-
-      <div className="space-y-4 p-5">
-        <ModeToggle mode={mode} onChange={setMode} />
+      <div className="space-y-4 border-y bg-muted/15 px-6 py-5">
+        <ModeToggle mode={mode} onChange={setMode} language={language} />
 
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           <SelectField label="학생">
@@ -229,8 +220,9 @@ export function LanguageColumn({
           </Select>
         </SelectField>
 
-        <SelectField label="바코드 스캔">
-          <div className="flex gap-2">
+        <div className="flex gap-2">
+          <div className="relative flex-1">
+            <Barcode className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-muted-foreground" />
             <Input
               ref={barcodeRef}
               value={barcode}
@@ -239,26 +231,25 @@ export function LanguageColumn({
               placeholder="BK00001"
               autoFocus
               disabled={scanning}
-              className="font-mono"
+              className="h-12 pl-10 font-mono text-base tracking-wider"
             />
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => barcodeRef.current?.focus()}
-              disabled={scanning}
-            >
-              <ScanLine className="size-4" />
-              스캔
-            </Button>
           </div>
-        </SelectField>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => barcodeRef.current?.focus()}
+            disabled={scanning}
+            className="h-12 px-5"
+          >
+            <ScanLine className="size-4" />
+            스캔
+          </Button>
+        </div>
 
-        <ScannedBookPreview book={lastBook} placeholderMode={mode} />
-
-        <Separator />
-
-        <ActiveLoanList loans={loans} mode={mode} />
+        {lastBook ? <ScannedBookPreview book={lastBook} /> : null}
       </div>
+
+      <ActiveLoanList loans={loans} mode={mode} />
     </div>
   );
 }
@@ -275,27 +266,27 @@ function ColumnHeader({
   overdueCount: number;
 }) {
   return (
-    <div className="flex items-start justify-between gap-4 p-5">
-      <div className="flex items-start gap-3">
+    <div className="flex items-center justify-between gap-4 px-6 py-5">
+      <div className="flex items-center gap-3">
         <span
           className={cn(
-            "inline-flex h-7 shrink-0 items-center rounded-md px-2 text-[11px] font-bold uppercase tracking-wider",
+            "inline-flex h-8 shrink-0 items-center rounded-md px-2.5 text-xs font-bold uppercase tracking-wider",
             badgeClass,
           )}
         >
           {LANGUAGE_LABEL[language].short}
         </span>
-        <div className="text-base font-semibold leading-tight">
+        <h3 className="text-xl font-semibold leading-tight">
           {LANGUAGE_LABEL[language].full}
-        </div>
+        </h3>
       </div>
-      <div className="text-right text-sm leading-tight">
-        <div>
-          <span className="text-lg font-bold">{activeCount}</span>
-          <span className="text-muted-foreground"> 권 대여</span>
+      <div className="text-right">
+        <div className="flex items-baseline justify-end gap-1.5">
+          <span className="text-2xl font-bold tabular-nums">{activeCount}</span>
+          <span className="text-sm text-muted-foreground">권 대여</span>
         </div>
         {overdueCount > 0 ? (
-          <div className="mt-0.5 text-xs font-semibold text-destructive">
+          <div className="mt-0.5 text-sm font-semibold text-destructive">
             연체 {overdueCount}권
           </div>
         ) : null}
@@ -307,10 +298,17 @@ function ColumnHeader({
 function ModeToggle({
   mode,
   onChange,
+  language,
 }: {
   mode: Mode;
   onChange: (mode: Mode) => void;
+  language: Language;
 }) {
+  const filledClass =
+    language === "ko"
+      ? "bg-ko text-ko-foreground hover:bg-ko/90"
+      : "bg-en text-en-foreground hover:bg-en/90";
+
   return (
     <div className="flex gap-2">
       <Button
@@ -318,6 +316,7 @@ function ModeToggle({
         variant={mode === "lend" ? "default" : "outline"}
         size="sm"
         onClick={() => onChange("lend")}
+        className={cn("min-w-16", mode === "lend" && filledClass)}
       >
         대여
       </Button>
@@ -326,6 +325,7 @@ function ModeToggle({
         variant={mode === "return" ? "default" : "outline"}
         size="sm"
         onClick={() => onChange("return")}
+        className={cn("min-w-16", mode === "return" && filledClass)}
       >
         반납
       </Button>
@@ -350,30 +350,14 @@ function SelectField({
   );
 }
 
-function ScannedBookPreview({
-  book,
-  placeholderMode,
-}: {
-  book: ScannedBook | null;
-  placeholderMode: Mode;
-}) {
-  if (!book) {
-    return (
-      <div className="rounded-md border border-dashed bg-muted/20 px-4 py-6 text-center text-xs text-muted-foreground">
-        {placeholderMode === "lend"
-          ? "대여할 책을 스캔하세요"
-          : "반납할 책을 스캔하세요"}
-      </div>
-    );
-  }
-
+function ScannedBookPreview({ book }: { book: ScannedBook }) {
   const isKo = book.language === "ko";
   const coverClass = isKo
     ? "bg-ko text-ko-foreground"
     : "bg-en text-en-foreground";
 
   return (
-    <div className="flex items-center gap-3 rounded-md border bg-muted/30 p-3">
+    <div className="flex items-center gap-3 rounded-md border bg-card p-3">
       <div
         className={cn(
           "flex h-16 w-12 shrink-0 items-center justify-center overflow-hidden rounded text-[10px] font-semibold",
@@ -413,18 +397,16 @@ function ActiveLoanList({
   mode: Mode;
 }) {
   return (
-    <div className="space-y-2">
-      <div className="text-xs text-muted-foreground">
-        {mode === "lend"
-          ? `현재 대여 중 ${loans.length}권`
-          : `반납 가능 · 현재 대여 중 ${loans.length}권`}
+    <div>
+      <div className="px-6 py-3 text-xs font-medium text-muted-foreground">
+        {mode === "return" ? "반납 가능 · " : ""}현재 대여 중 {loans.length}권
       </div>
       {loans.length === 0 ? (
-        <div className="rounded-md border border-dashed bg-muted/20 px-4 py-6 text-center text-xs text-muted-foreground">
+        <div className="px-6 pb-6 text-center text-xs text-muted-foreground">
           대여 중인 도서가 없습니다
         </div>
       ) : (
-        <ul className="max-h-96 space-y-1 overflow-y-auto">
+        <ul className="max-h-96 divide-y overflow-y-auto">
           {loans.map((loan) => (
             <ActiveLoanItem key={loan.id} loan={loan} />
           ))}
@@ -441,13 +423,15 @@ function ActiveLoanItem({ loan }: { loan: ActiveLoan }) {
   return (
     <li
       className={cn(
-        "flex items-center gap-3 rounded-md border p-3",
-        isOverdue && "border-l-4 border-l-destructive bg-destructive/5",
+        "flex items-center gap-3 border-l-2 px-6 py-3 transition-colors",
+        isOverdue
+          ? "border-l-destructive bg-destructive/5"
+          : "border-l-transparent hover:bg-muted/30",
       )}
     >
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <Badge variant="secondary">{loan.student.grade}학년</Badge>
+          <Badge>{loan.student.grade}학년</Badge>
           <span className="font-semibold">{loan.student.name}</span>
         </div>
         <div className="mt-0.5 truncate text-xs text-muted-foreground">
@@ -455,7 +439,7 @@ function ActiveLoanItem({ loan }: { loan: ActiveLoan }) {
         </div>
       </div>
       {isOverdue ? (
-        <span className="shrink-0 rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-semibold text-destructive">
+        <span className="shrink-0 rounded-full border border-destructive/30 bg-destructive/10 px-2.5 py-0.5 text-xs font-semibold text-destructive">
           +{days}일
         </span>
       ) : null}
