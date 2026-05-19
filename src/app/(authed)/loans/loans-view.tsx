@@ -96,13 +96,6 @@ export function LoansView({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight">대여 현황</h2>
-        <p className="mt-1.5 text-sm text-muted-foreground">
-          모든 활성 대여 · 회수 우선순위 (연체 → 저학년 → 기한 순)
-        </p>
-      </div>
-
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <KpiCard label="전체 대여 중" value={totalActive} unit="권" />
         <KpiCard
@@ -112,7 +105,12 @@ export function LoansView({
           extra={overdueCount > 0 ? `최장 ${maxOverdueDays}일` : undefined}
           tone="alert"
         />
-        <KpiCard label="오늘 반납 예정" value={dueTodayCount} unit="권" />
+        <KpiCard
+          label="오늘 반납 예정"
+          value={dueTodayCount}
+          unit="권"
+          tone="warn"
+        />
       </div>
 
       <div className="rounded-xl border bg-card p-4 shadow-sm">
@@ -212,7 +210,7 @@ function LanguageToggle({
   const options = [
     { v: "all", label: "전체" },
     { v: "ko", label: "한국어" },
-    { v: "en", label: "English" },
+    { v: "en", label: "영어" },
   ];
   return (
     <div className="inline-flex overflow-hidden rounded-md border bg-card">
@@ -247,21 +245,19 @@ function KpiCard({
   value: number;
   unit: string;
   extra?: string;
-  tone?: "alert";
+  tone?: "alert" | "warn";
 }) {
+  const valueClass = cn(
+    "text-3xl font-bold tabular-nums",
+    tone === "alert" && value > 0 && "text-destructive",
+    tone === "warn" && value > 0 && "text-amber-600 dark:text-amber-500",
+  );
   return (
     <Card>
       <CardContent className="p-5">
         <div className="text-xs font-medium text-muted-foreground">{label}</div>
         <div className="mt-1.5 flex items-baseline gap-1">
-          <span
-            className={cn(
-              "text-3xl font-bold",
-              tone === "alert" && value > 0 && "text-destructive",
-            )}
-          >
-            {value}
-          </span>
+          <span className={valueClass}>{value}</span>
           <span className="text-sm text-muted-foreground">{unit}</span>
         </div>
         {extra ? (
