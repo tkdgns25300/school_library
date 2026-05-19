@@ -1,5 +1,3 @@
-"use cache";
-
 import { cacheLife, cacheTag } from "next/cache";
 
 import { PageHeader } from "@/components/layout/page-header";
@@ -10,6 +8,7 @@ import { getClassStats } from "@/lib/queries/home";
 import { ClassCard } from "./class-card";
 
 export default async function OperationHomePage() {
+  "use cache";
   cacheTag("students", "loans");
   cacheLife("days");
 

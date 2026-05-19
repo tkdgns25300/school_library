@@ -1,5 +1,3 @@
-"use cache";
-
 import { cacheLife, cacheTag } from "next/cache";
 
 import { PageHeader } from "@/components/layout/page-header";
@@ -9,6 +7,7 @@ import { getStudentsWithStats } from "@/lib/queries/students";
 import { StudentsView } from "./students-view";
 
 export default async function StudentsPage() {
+  "use cache";
   cacheTag("students", "loans", "books");
   cacheLife("days");
 

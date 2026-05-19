@@ -1,5 +1,3 @@
-"use cache";
-
 import { cacheLife, cacheTag } from "next/cache";
 
 import { PageHeader } from "@/components/layout/page-header";
@@ -8,6 +6,7 @@ import { getTeachers } from "@/lib/queries/teachers";
 import { TeachersView } from "./teachers-view";
 
 export default async function TeachersPage() {
+  "use cache";
   cacheTag("teachers");
   cacheLife("days");
 

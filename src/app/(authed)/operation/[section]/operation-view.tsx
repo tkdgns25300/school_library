@@ -1,28 +1,9 @@
 "use client";
 
+import type { ActiveLoan, Student, Teacher } from "@/lib/queries/operation";
 import type { ClassSection } from "@/types/domain";
 
 import { LanguageColumn } from "./language-column";
-
-export type Student = {
-  id: string;
-  name: string;
-  grade: number;
-  class_section: string;
-};
-
-export type Teacher = {
-  id: string;
-  name: string;
-  class_section: string;
-};
-
-export type ActiveLoan = {
-  id: string;
-  due_date: string;
-  student: { id: string; name: string; grade: number; class_section: string };
-  book: { id: string; title: string; author: string | null; language: string };
-};
 
 export function OperationView({
   section,
