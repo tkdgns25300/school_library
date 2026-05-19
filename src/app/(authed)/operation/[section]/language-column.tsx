@@ -25,7 +25,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { LANGUAGE_LABEL } from "@/constants/languages";
-import { normalizeBarcodeInput } from "@/lib/barcode";
 import { todayIso } from "@/lib/date";
 import type { ActiveLoan, Student } from "@/lib/queries/operation";
 import { cn } from "@/lib/utils";
@@ -188,9 +187,33 @@ export function LanguageColumn({
   }
 
   function handleBarcodeKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key !== "Enter") return;
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleScan();
+      return;
+    }
+    if (e.key === "Backspace") {
+      e.preventDefault();
+      setBarcode((prev) => prev.slice(0, -1));
+      return;
+    }
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    // Capture by physical key position (e.code) so the value is unaffected
+    // by the current IME state. With Korean IME active 'B' (=ㅠ) and 'K'
+    // (=ㅏ) form an invalid syllable and the IME silently drops them,
+    // leaving only the digits — so we can't rely on e.key or onChange.
+    let ch: string | null = null;
+    if (e.code.startsWith("Key") && e.code.length === 4) {
+      ch = e.code.charAt(3);
+    } else if (e.code.startsWith("Digit") && e.code.length === 6) {
+      ch = e.code.charAt(5);
+    } else if (e.code.startsWith("Numpad") && e.code.length === 7) {
+      const c = e.code.charAt(6);
+      if (c >= "0" && c <= "9") ch = c;
+    }
+    if (ch === null) return;
     e.preventDefault();
-    handleScan();
+    setBarcode((prev) => prev + ch);
   }
 
   return (
@@ -264,13 +287,7 @@ export function LanguageColumn({
               key={barcodeKey}
               ref={barcodeRef}
               value={barcode}
-              onChange={(e) => {
-                if ((e.nativeEvent as InputEvent).isComposing) return;
-                setBarcode(normalizeBarcodeInput(e.target.value));
-              }}
-              onCompositionEnd={(e) => {
-                setBarcode(normalizeBarcodeInput(e.currentTarget.value));
-              }}
+              readOnly
               onKeyDown={handleBarcodeKeyDown}
               placeholder="BK00001"
               autoFocus
