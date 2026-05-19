@@ -1,6 +1,6 @@
 "use client";
 
-import type { ActiveLoan, Student, Teacher } from "@/lib/queries/operation";
+import type { ActiveLoan, Student } from "@/lib/queries/operation";
 import type { ClassSection } from "@/types/domain";
 
 import { LanguageColumn } from "./language-column";
@@ -8,13 +8,11 @@ import { LanguageColumn } from "./language-column";
 export function OperationView({
   section,
   students,
-  teachers,
   koLoans,
   enLoans,
 }: {
   section: ClassSection;
   students: Student[];
-  teachers: Teacher[];
   koLoans: ActiveLoan[];
   enLoans: ActiveLoan[];
 }) {
@@ -24,14 +22,12 @@ export function OperationView({
         language="ko"
         section={section}
         students={students}
-        teachers={teachers}
         loans={koLoans}
       />
       <LanguageColumn
         language="en"
         section={section}
         students={students}
-        teachers={teachers}
         loans={enLoans}
       />
     </div>

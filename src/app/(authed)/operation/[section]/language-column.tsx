@@ -27,7 +27,7 @@ import {
 import { LANGUAGE_LABEL } from "@/constants/languages";
 import { normalizeBarcodeInput } from "@/lib/barcode";
 import { todayIso } from "@/lib/date";
-import type { ActiveLoan, Student, Teacher } from "@/lib/queries/operation";
+import type { ActiveLoan, Student } from "@/lib/queries/operation";
 import { cn } from "@/lib/utils";
 import type { ClassSection, Language } from "@/types/domain";
 
@@ -50,18 +50,15 @@ export function LanguageColumn({
   language,
   section,
   students,
-  teachers,
   loans,
 }: {
   language: Language;
   section: ClassSection;
   students: Student[];
-  teachers: Teacher[];
   loans: ActiveLoan[];
 }) {
   const [mode, setMode] = useState<Mode>("lend");
   const [student, setStudent] = useState<Student | null>(null);
-  const [teacher, setTeacher] = useState<Teacher | null>(null);
   const [dueDate, setDueDate] = useState<Date>(() => {
     const d = new Date();
     d.setDate(d.getDate() + DEFAULT_DUE_DAYS);
@@ -89,10 +86,6 @@ export function LanguageColumn({
         toast.error("학생을 먼저 선택해주세요");
         return;
       }
-      if (!teacher) {
-        toast.error("담당 교사를 먼저 선택해주세요");
-        return;
-      }
 
       startScan(async () => {
         const result = await lendBook({
@@ -100,7 +93,6 @@ export function LanguageColumn({
           language,
           bookId: value,
           studentId: student.id,
-          teacherId: teacher.id,
           dueDate: format(dueDate, "yyyy-MM-dd"),
         });
         setBarcode("");
@@ -116,16 +108,11 @@ export function LanguageColumn({
       return;
     }
 
-    if (!teacher) {
-      toast.error("담당 교사를 먼저 선택해주세요");
-      return;
-    }
     startScan(async () => {
       const result = await returnBook({
         section,
         language,
         bookId: value,
-        teacherId: teacher.id,
       });
       setBarcode("");
       barcodeRef.current?.focus();
@@ -208,30 +195,6 @@ export function LanguageColumn({
             </SelectField>
           ) : null}
         </div>
-
-        <SelectField label="담당 교사">
-          <Combobox
-            items={teachers}
-            itemToStringLabel={(t: Teacher) => t.name}
-            value={teacher}
-            onValueChange={(t) => setTeacher(t as Teacher | null)}
-            disabled={scanning}
-          >
-            <ComboboxInput placeholder="교사 선택 또는 검색" />
-            <ComboboxContent>
-              <ComboboxList>
-                <ComboboxCollection>
-                  {(t: Teacher) => (
-                    <ComboboxItem key={t.id} value={t}>
-                      {t.name}
-                    </ComboboxItem>
-                  )}
-                </ComboboxCollection>
-                <ComboboxEmpty>일치하는 교사가 없습니다</ComboboxEmpty>
-              </ComboboxList>
-            </ComboboxContent>
-          </Combobox>
-        </SelectField>
 
         <div className="flex gap-2">
           <div className="relative flex-1">

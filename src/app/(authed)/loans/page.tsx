@@ -11,7 +11,8 @@ export default async function LoansPage() {
   cacheTag("loans", "students", "books");
   cacheLife("days");
 
-  const data = await getLoansForMonitoring(todayIso());
+  const today = todayIso();
+  const data = await getLoansForMonitoring(today);
 
   return (
     <>
@@ -24,6 +25,7 @@ export default async function LoansPage() {
             overdueCount={data.overdueCount}
             maxOverdueDays={data.maxOverdueDays}
             dueTodayCount={data.dueTodayCount}
+            today={today}
           />
         </div>
       </main>

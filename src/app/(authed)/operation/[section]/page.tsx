@@ -22,7 +22,7 @@ export default async function OperationSectionPage({
   params: Promise<{ section: string }>;
 }) {
   "use cache";
-  cacheTag("students", "teachers", "loans", "books");
+  cacheTag("students", "loans", "books");
   cacheLife("days");
 
   const { section: rawSection } = await params;
@@ -75,7 +75,6 @@ export default async function OperationSectionPage({
             <OperationView
               section={section as ClassSection}
               students={data.students}
-              teachers={data.teachers}
               koLoans={data.koLoans}
               enLoans={data.enLoans}
             />

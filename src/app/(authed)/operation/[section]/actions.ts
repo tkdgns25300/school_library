@@ -24,13 +24,11 @@ export async function lendBook(input: {
   language: Language;
   bookId: string;
   studentId: string;
-  teacherId: string;
   dueDate: string;
 }): Promise<ScanResult> {
   const bookId = input.bookId.trim();
   if (bookId === "") return { error: "바코드를 입력해주세요." };
   if (!input.studentId) return { error: "학생을 먼저 선택해주세요." };
-  if (!input.teacherId) return { error: "담당 교사를 먼저 선택해주세요." };
 
   const supabase = await createClient();
 
@@ -62,7 +60,6 @@ export async function lendBook(input: {
   const { error } = await supabase.from("loans").insert({
     book_id: book.id,
     student_id: input.studentId,
-    handled_by_teacher_id: input.teacherId,
     due_date: input.dueDate,
   });
 
@@ -81,11 +78,9 @@ export async function returnBook(input: {
   section: ClassSection;
   language: Language;
   bookId: string;
-  teacherId: string;
 }): Promise<ScanResult> {
   const bookId = input.bookId.trim();
   if (bookId === "") return { error: "바코드를 입력해주세요." };
-  if (!input.teacherId) return { error: "담당 교사를 먼저 선택해주세요." };
 
   const supabase = await createClient();
 
@@ -131,7 +126,6 @@ export async function returnBook(input: {
     .from("loans")
     .update({
       returned_at: new Date().toISOString(),
-      returned_by_teacher_id: input.teacherId,
     })
     .eq("id", loan.id);
 

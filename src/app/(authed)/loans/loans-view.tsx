@@ -23,15 +23,13 @@ import {
 } from "@/components/ui/table";
 import { CLASS_SECTIONS } from "@/constants/class-sections";
 import { LANGUAGE_LABEL } from "@/constants/languages";
-import { todayIso } from "@/lib/date";
 import type { LoanRow } from "@/lib/queries/loans";
 import { cn } from "@/lib/utils";
 import type { Language } from "@/types/domain";
 
 import { LoanDetailDialog } from "./loan-detail-dialog";
 
-function overdueDays(dueDate: string): number {
-  const today = todayIso();
+function overdueDays(dueDate: string, today: string): number {
   if (dueDate >= today) return 0;
   return Math.floor((Date.parse(today) - Date.parse(dueDate)) / 86_400_000);
 }
@@ -42,12 +40,14 @@ export function LoansView({
   overdueCount,
   maxOverdueDays,
   dueTodayCount,
+  today,
 }: {
   loans: LoanRow[];
   totalActive: number;
   overdueCount: number;
   maxOverdueDays: number;
   dueTodayCount: number;
+  today: string;
 }) {
   const [search, setSearch] = useState("");
   const [languageFilter, setLanguageFilter] = useState<string>("all");
@@ -170,6 +170,7 @@ export function LoansView({
                 <LoanRowItem
                   key={loan.id}
                   loan={loan}
+                  today={today}
                   onClick={() => setSelectedLoan(loan)}
                 />
               ))
@@ -260,13 +261,14 @@ function KpiCard({
 
 function LoanRowItem({
   loan,
+  today,
   onClick,
 }: {
   loan: LoanRow;
+  today: string;
   onClick: () => void;
 }) {
-  const today = todayIso();
-  const days = overdueDays(loan.due_date);
+  const days = overdueDays(loan.due_date, today);
   const isOverdue = days > 0;
   const isDueToday = loan.due_date === today;
   const isKo = loan.book.language === "ko";

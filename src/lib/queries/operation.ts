@@ -10,12 +10,6 @@ export type Student = {
   class_section: string;
 };
 
-export type Teacher = {
-  id: string;
-  name: string;
-  class_section: string;
-};
-
 export type ActiveLoan = {
   id: string;
   due_date: string;
@@ -25,7 +19,6 @@ export type ActiveLoan = {
 
 export type OperationData = {
   students: Student[];
-  teachers: Teacher[];
   koLoans: ActiveLoan[];
   enLoans: ActiveLoan[];
   totalActive: number;
@@ -37,15 +30,11 @@ export async function getOperationData(
   today: string,
 ): Promise<OperationData> {
   const supabase = createServiceClient();
-  const [studentsRes, teachersRes, loansRes, booksRes] = await Promise.all([
+  const [studentsRes, loansRes, booksRes] = await Promise.all([
     supabase
       .from("students")
       .select("id, name, grade, class_section")
       .eq("class_section", section),
-    supabase
-      .from("teachers")
-      .select("id, name, class_section")
-      .order("name"),
     supabase
       .from("loans")
       .select("id, due_date, book_id, student_id")
@@ -54,7 +43,6 @@ export async function getOperationData(
   ]);
 
   const students = sortStudentsForRoster(studentsRes.data ?? []);
-  const teachers = teachersRes.data ?? [];
 
   const studentMap = new Map((studentsRes.data ?? []).map((s) => [s.id, s]));
   const bookMap = new Map((booksRes.data ?? []).map((b) => [b.id, b]));
@@ -79,7 +67,6 @@ export async function getOperationData(
 
   return {
     students,
-    teachers,
     koLoans,
     enLoans,
     totalActive: sectionLoans.length,

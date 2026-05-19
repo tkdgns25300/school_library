@@ -58,11 +58,9 @@
 | id | uuid | PK, default `gen_random_uuid()` | |
 | student_id | uuid | NOT NULL, FK → students(id) ON DELETE RESTRICT | |
 | book_id | text | NOT NULL, FK → books(id) ON DELETE RESTRICT | 바코드 |
-| handled_by_teacher_id | uuid | NOT NULL, FK → teachers(id) ON DELETE RESTRICT | 대여 처리 교사 |
 | loaned_at | timestamptz | NOT NULL, DEFAULT now() | |
 | due_date | date | NOT NULL | 반납 예정일 |
 | returned_at | timestamptz | | NULL이면 대여 중 |
-| returned_by_teacher_id | uuid | FK → teachers(id) ON DELETE RESTRICT | 반납 처리 교사 |
 
 `loans`에는 `updated_at` 컬럼이 없다. 상태 전이는 `returned_at`으로 표현.
 
