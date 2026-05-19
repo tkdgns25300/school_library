@@ -14,9 +14,15 @@ export type ScannedBook = {
   cover_image_url: string | null;
 };
 
+export type ScannedBorrower = {
+  name: string;
+  grade: number;
+};
+
 export type ScanResult = {
   error?: string;
   book?: ScannedBook;
+  borrower?: ScannedBorrower;
 };
 
 export async function lendBook(input: {
@@ -132,5 +138,10 @@ export async function returnBook(input: {
   if (error) return { error: "반납 처리에 실패했습니다." };
 
   updateTag("loans");
-  return { book };
+  return {
+    book,
+    borrower: borrower
+      ? { name: borrower.name, grade: borrower.grade }
+      : undefined,
+  };
 }

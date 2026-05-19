@@ -220,6 +220,29 @@ export function LanguageColumn({
     });
   }
 
+  function handleListReturn(loan: ActiveLoan) {
+    setScanFeedback(null);
+    startScan(async () => {
+      const result = await returnBook({
+        section,
+        language,
+        bookId: loan.book.id,
+      });
+      if (result.error) {
+        if (result.book) setLastBook(result.book);
+        toast.error(result.error);
+        return;
+      }
+      setLastBook(result.book ?? null);
+      const who = result.borrower
+        ? `${result.borrower.grade}학년 ${result.borrower.name} — `
+        : `${loan.student.grade}학년 ${loan.student.name} — `;
+      toast.success(
+        `${who}'${result.book?.title ?? loan.book.title}' 반납 완료`,
+      );
+    });
+  }
+
   function handleBarcodeKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -341,7 +364,12 @@ export function LanguageColumn({
         {lastBook ? <ScannedBookPreview book={lastBook} /> : null}
       </div>
 
-      <ActiveLoanList loans={loans} mode={mode} />
+      <ActiveLoanList
+        loans={loans}
+        mode={mode}
+        onReturn={handleListReturn}
+        processing={scanning}
+      />
 
       {scanGuideOpen ? (
         <ScanGuideOverlay
@@ -713,14 +741,19 @@ function ScannedBookPreview({ book }: { book: ScannedBook }) {
 function ActiveLoanList({
   loans,
   mode,
+  onReturn,
+  processing,
 }: {
   loans: ActiveLoan[];
   mode: Mode;
+  onReturn: (loan: ActiveLoan) => void;
+  processing: boolean;
 }) {
+  const isReturn = mode === "return";
   return (
     <div>
       <div className="px-6 py-3 text-xs font-medium text-muted-foreground">
-        {mode === "return" ? "반납 가능 · " : ""}현재 대여 중 {loans.length}권
+        {isReturn ? "반납 가능 · " : ""}현재 대여 중 {loans.length}권
       </div>
       {loans.length === 0 ? (
         <div className="px-6 pb-6 text-center text-xs text-muted-foreground">
@@ -729,7 +762,13 @@ function ActiveLoanList({
       ) : (
         <ul className="max-h-96 divide-y overflow-y-auto">
           {loans.map((loan) => (
-            <ActiveLoanItem key={loan.id} loan={loan} />
+            <ActiveLoanItem
+              key={loan.id}
+              loan={loan}
+              showReturnButton={isReturn}
+              onReturn={onReturn}
+              processing={processing}
+            />
           ))}
         </ul>
       )}
@@ -737,7 +776,17 @@ function ActiveLoanList({
   );
 }
 
-function ActiveLoanItem({ loan }: { loan: ActiveLoan }) {
+function ActiveLoanItem({
+  loan,
+  showReturnButton,
+  onReturn,
+  processing,
+}: {
+  loan: ActiveLoan;
+  showReturnButton: boolean;
+  onReturn: (loan: ActiveLoan) => void;
+  processing: boolean;
+}) {
   const days = overdueDays(loan.due_date);
   const isOverdue = days > 0;
 
@@ -754,15 +803,25 @@ function ActiveLoanItem({ loan }: { loan: ActiveLoan }) {
         <div className="flex items-center gap-2">
           <Badge>{loan.student.grade}학년</Badge>
           <span className="font-semibold">{loan.student.name}</span>
+          {isOverdue ? (
+            <span className="text-xs font-semibold text-destructive">
+              +{days}일 연체
+            </span>
+          ) : null}
         </div>
         <div className="mt-0.5 truncate text-xs text-muted-foreground">
           {loan.book.title} · 반납 {loan.due_date.slice(5)}
         </div>
       </div>
-      {isOverdue ? (
-        <span className="shrink-0 rounded-full border border-destructive/30 bg-destructive/10 px-2.5 py-0.5 text-xs font-semibold text-destructive">
-          +{days}일
-        </span>
+      {showReturnButton ? (
+        <button
+          type="button"
+          onClick={() => onReturn(loan)}
+          disabled={processing}
+          className="shrink-0 rounded-md border bg-background px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-muted disabled:opacity-50"
+        >
+          반납
+        </button>
       ) : null}
     </li>
   );
