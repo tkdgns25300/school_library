@@ -94,6 +94,25 @@
 
 > **Phase 1 (MVP) 완료** — 5페이지 모두 운영 가능 상태.
 
+## Phase 1.5: 캐싱 인프라 (완료)
+
+> 배포 후 페이지 진입 0.3~4초 문제 해결. Vercel CDN에서 직접 서빙되도록 전환.
+
+- [x] `cacheComponents: true` 활성 — `next.config.ts`
+- [x] 5개 list 페이지(`'use cache'` + `cacheTag` + `cacheLife('days')`) — `/`, `/students`, `/books`, `/teachers`, `/loans`
+- [x] Server Action mutation → `updateTag(resource)` 일관 (read-your-own-writes)
+- [x] service-role Supabase 클라이언트 — `src/lib/supabase/service.ts` (cached read 전용)
+- [x] cached read 함수 분리 — `src/lib/queries/{home,students,books,teachers,loans}.ts`
+- [x] operation 페이지 Partial Prerender — `<Suspense>` + `generateStaticParams`
+- [x] `PageHeader`의 `new Date()` 부분 client 컴포넌트로 분리 (`TodayDate`)
+- [x] Vercel Cron — `/api/cron/midnight` KST 자정마다 모든 태그 `revalidateTag(tag, "max")`
+- [x] `CRON_SECRET` 인증 + `.env.example`·README·Vercel env 등록
+- [x] `lib/date.ts` `todayIso()` 단일화 (9곳 import)
+- [x] CLAUDE.md 재작성 — 정석 아키텍처 박제
+
+> **검증 완료** (2026-05-19): `X-Action-Revalidated: 1` (mutation 무효), `X-Vercel-Cache: REVALIDATED` (재생성), Cron 등록 `Next run: UTC 15:00` 확인.
+> ⚠️ Vercel Hobby plan은 1-hour flexible window이라 cron이 KST 00:00~01:00 사이에 발동될 수 있음.
+
 ## Phase 2: 운영 편의
 
 - [ ] 추세 통계 (인기 도서 Top N, 학년별 대여 빈도)

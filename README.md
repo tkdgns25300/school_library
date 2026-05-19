@@ -49,7 +49,7 @@ npm run dev
 | Vercel project | `school_library` (production = `main`, function region `icn1`) |
 | Admin 계정 | `admin@thehim.school` (비번은 별도 보관) |
 | Storage 버킷 | `book-covers` (public read, authenticated write) |
-| Vercel Cron | `/api/cron/midnight` 매일 KST 00:00 (UTC 15:00) — `CRON_SECRET` 필수 |
+| Vercel Cron | `/api/cron/midnight` 매일 KST 00:00 (UTC 15:00) ± 1h (Hobby plan) — `CRON_SECRET` 필수 |
 
 ### 환경 변수
 
