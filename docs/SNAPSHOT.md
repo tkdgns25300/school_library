@@ -1,29 +1,59 @@
-# Snapshot — 2026-05-19 (늦은 밤, 운영 페이지 정비 마침)
+# Snapshot — 2026-05-20 (HIMS 로고 통일 + 대여 내역 페이지 신규)
 
 > 시점 핸드오프. 새 환경에서 재개 시 이 파일부터.
 > 영구 사실은 [`../CLAUDE.md`](../CLAUDE.md) · [`SPEC.md`](./SPEC.md) · [`SCHEMA.md`](./SCHEMA.md) · [`ROADMAP.md`](./ROADMAP.md) · [`../README.md`](../README.md).
 
 ## 현재 위치
 
-Phase 1(기능 5페이지) + Phase 1.5(캐시 인프라) + 디자인 통일 + 브랜드 자산 + **운영 페이지 대대적 정비**(담당 교사 제거·학년 picker·인라인 반납·스캔 모달 단순화·IME 우회) 완료. 데이터는 admin 계정만.
+Phase 1(기능 5페이지) + Phase 1.5(캐시 인프라) + 운영 페이지 정비 + **HIMS 로고 전 surface 적용** + **Phase 2 첫 작업: `/loans/history` 대여 내역 페이지** 완료. 데이터는 admin 계정만.
 
-**다음**: Phase 2 — 대여/반납 내역 페이지, 엑셀+AI 책 가져오기, HIMS 로고 적용 (아래 후보 참조).
+**다음**: Phase 2 — 엑셀+AI 책 가져오기 (꿈의 학교 인증도서 매칭), 추세 통계, 일괄 작업 (아래 후보 참조).
 
-**최신 main 커밋**: `123325c` (SNAPSHOT 갱신) — 이전 4개(`b5db141` roster polish · `e7a8619` overdueDays/Language 단일화 · `becb467` 반응형 1차 · 그 외 운영 정비 시리즈) 포함
+**최신 main 커밋**: `762158c` (HIMS 로고 적용) — 그 위로 대여 내역 페이지 시리즈 추가 예정.
 
 | 라우트 | 모드 | 비고 |
 |---|---|---|
-| `/login` | Static | Great Vibes 헤딩 + 드리프트 orb · "관리자 계정" 라벨 |
+| `/login` | Static | Great Vibes 헤딩 + HIMS 방패 hero + 드리프트 orb |
 | `/` | `'use cache'` Static | navy 그라데이션 클래스 카드, 「어느 반을 담당하시나요?」 |
-| `/operation/[section]` | Partial Prerender | KO/EN tint 헤더 + 카드 상단 대여/반납 full-width 탭 + 학년 chip picker + readOnly 바코드 input(IME 우회) + 인라인 반납 버튼 |
+| `/operation/[section]` | Partial Prerender | KO/EN tint 헤더 + 대여/반납 full-width 탭 + 학년 chip picker + readOnly 바코드 input(IME 우회) + 인라인 반납 버튼 |
 | `/students` | `'use cache'` Static | stat anchor + 필터 카드 wrapper 제거 |
 | `/teachers` | `'use cache'` Static | 동일 패턴 |
-| `/books` | `'use cache'` Static | 동일 패턴 + KO/EN 컬러 탭(underline) + count chip 채움 |
+| `/books` | `'use cache'` Static | KO/EN 컬러 탭(underline) + count chip 채움 |
 | `/loans` | `'use cache'` Static | KPI 카드 (전체/연체/오늘 반납), inline 필터 |
+| `/loans/history` | `'use cache'` Static | **신규** — 반납 완료 거래 조회. 기간 프리셋+커스텀 범위(range Calendar) · 검색 · 언어 · 반 필터. 연체 반납 배지 |
 | `/api/cron/midnight` | Dynamic | KST 자정 4태그 무효 (Bearer 검증) |
-| `/icon`, `/opengraph-image` | Dynamic | next/og 동적 PNG (CDN 캐시) |
+| `/icon.png` | Static | HIMS 방패 64×64 정적 favicon |
+| `/opengraph-image` | Dynamic | next/og 동적 PNG, 방패 임베드(fs.readFile data URL) |
 
-## 오늘(2026-05-19) 한 일 요약
+## 오늘(2026-05-20) 한 일 요약
+
+### Phase 2 첫 작업 — `/loans/history` 대여 내역 페이지
+
+- 신규: `src/lib/queries/loan-history.ts` (`getLoanHistory()`, `returned_at NOT NULL` + `returned_at DESC`)
+- 신규: `src/app/(authed)/loans/history/{page,history-view}.tsx`
+- 사이드바 운영 그룹에 「대여 내역」 항목 추가 (`ClipboardList` 아이콘)
+- 캐시: `'use cache' + cacheTag("loans", "students", "books") + cacheLife("days")` — `/loans`와 동일 의존
+- UI: 인라인 stat anchor + 검색 + **기간 필터(프리셋 칩 + Calendar `mode="range"` Popover, 상호 배타)** + 언어 토글 + 반 select
+- 테이블 8컬럼: 표지 / 학년·반 / 학생 / 책 / 언어 / 대여일 / 반납일 / 연체 반납 배지 (연체 반납 행만)
+- 정렬: `returned_at DESC` 고정 (UI 토글 없음)
+- CSV 내보내기는 Phase 2 후반에 별도 작업
+
+### HIMS 로고 전 surface 적용 (낮)
+
+- 원본 `hims-logo.png`를 3종 PNG로 자동 분리: `hims-shield.png`(방패 단독) · `hims-mark.png`(방패+부제) · `hims-lockup.png`(가로 lockup). Python+Pillow로 bbox 자동 검출 후 crop.
+- 사이드바: `더힘` 텍스트 배지 → `hims-shield.png` (`size-9 object-contain`). expanded/collapsed/mobile drawer 공유.
+- 로그인: 그라데이션 박스 + Library 아이콘 → `hims-shield.png` (`size-24`). Great Vibes "School Library" 헤딩 유지.
+- favicon: 동적 `icon.tsx` 제거 → 정적 `src/app/icon.png` (방패 64×64). `ƒ /icon` → `○ /icon.png`로 분류 개선.
+- OG 이미지: Library SVG → 방패 PNG 임베드(`fs.readFile` + base64 data URL).
+- proxy.ts matcher에서 `icon` literal 제거 (`.png$` 패턴이 대신 잡음).
+- **전 authed 페이지 백그라운드 워터마크**: `(authed)/layout.tsx`에 `sticky top-0` + `-mb-[100vh]` 패턴으로 viewport 중앙 고정. 사이드바 영향 X (컬럼 안에서 갇힘). opacity 0.07. `bg-muted/30` main을 투과해 옅게 보이고, 솔리드 PageHeader·bg-card는 가림.
+- 로그인은 (authed) 밖이라 워터마크 제외, 자체 hero treatment.
+
+### 정리 (아침)
+- `lib/barcode.ts` — `normalizeBarcodeInput` + `HANGUL_JAMO_TO_LATIN` 매핑 삭제. IME 우회가 readOnly + `e.code` 캡쳐로 바뀐 뒤 호출처 없음. `generateBarcodePng`만 남음.
+- SNAPSHOT 헤더 「최신 main 커밋」 갱신.
+
+## 어제(2026-05-19) 한 일 요약
 
 ### 운영 페이지 대대적 정비 (늦은 밤 — 완료)
 
@@ -165,7 +195,7 @@ CLAUDE.md/SPEC 「데스크탑 우선 + 모바일 조회 가능」 목표.
     - (a) 별도 Node.js 스크립트 (`scripts/import-books.ts`) — 1회성 import
     - (b) Server action + 진행률 UI — 운영자가 직접 업로드/실행
   - **현재 정해진 것 없음** — 작업 시 엑셀 양식 + 꿈의 학교 검색 UI 분석부터.
-- [ ] **대여/반납 내역 관리 페이지** — 현재 `/loans`는 **활성 대여만** 표시. 반납 완료된 트랜잭션 히스토리(누가/언제/어떤 책을 빌리고 반납했는지)를 조회·필터(기간·학생·책·언어)·검색·CSV 내보내기 가능한 별도 페이지 필요. 운영팀이 반학기별·연간 통계를 요구할 때 baseline.
+- [x] ~~**대여/반납 내역 관리 페이지**~~ — 2026-05-20 완료 (`/loans/history`). 단 CSV 내보내기는 추후 작업으로 분리.
 - [ ] **HIMS 로고 적용** — `public/branding/hims-logo.png`를 사이드바 상단, 로그인 헤더, favicon, OG 이미지로 통일. 현재 `더힘` 텍스트 배지 → 실제 학교 로고로 교체.
 - [ ] **책 CSV/XLSX 양식·필드 확정 (운영팀/여친 협의)** — 현재 7컬럼이 실제 학교 운영에 맞는지 재검토 (위 AI 가져오기와 통합 가능)
 - [ ] 추세 통계 (인기 도서 Top N, 학년별 대여 빈도)

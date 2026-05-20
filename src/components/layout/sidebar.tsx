@@ -9,6 +9,7 @@ import {
   BookOpen,
   ChevronLeft,
   ChevronRight,
+  ClipboardList,
   LayoutGrid,
   LogOut,
   Menu,
@@ -31,6 +32,7 @@ const NAV_GROUPS = [
     items: [
       { href: "/", label: "대여 데스크", icon: LayoutGrid },
       { href: "/loans", label: "대여 현황", icon: Activity },
+      { href: "/loans/history", label: "대여 내역", icon: ClipboardList },
     ],
   },
   {
