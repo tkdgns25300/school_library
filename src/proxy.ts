@@ -26,11 +26,11 @@ export async function proxy(request: NextRequest) {
 
 // 인증 게이트 제외 경로:
 // - Next.js 내부 자산
-// - 공개 이미지(favicon · OG 이미지) — 카카오톡 등 크롤러 접근 허용
+// - 공개 이미지(OG 이미지) — 카카오톡 등 크롤러 접근 허용
 // - cron 엔드포인트 — Bearer 토큰으로 자체 인증
-// - 정적 이미지 확장자
+// - 정적 이미지 확장자 (icon.png · public/** 포함)
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|icon|opengraph-image|api/cron|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|opengraph-image|api/cron|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

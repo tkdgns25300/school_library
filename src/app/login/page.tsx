@@ -1,4 +1,4 @@
-import { Library } from "lucide-react";
+import Image from "next/image";
 
 import LoginForm from "./login-form";
 
@@ -17,10 +17,14 @@ export default function LoginPage() {
       <div className="relative w-full max-w-md">
         <div className="rounded-3xl border border-white/60 bg-white/75 p-8 shadow-[0_20px_60px_-15px_oklch(0.32_0.13_262/0.25)] backdrop-blur-xl sm:p-10">
           <div className="mb-8 flex flex-col items-center text-center">
-            {/* 로고 — 추후 학교 로고 Image 컴포넌트로 교체 */}
-            <div className="mb-5 flex size-16 items-center justify-center rounded-2xl bg-gradient-to-br from-primary to-[oklch(0.45_0.16_262)] shadow-lg shadow-primary/30">
-              <Library className="size-8 text-white" strokeWidth={1.8} />
-            </div>
+            <Image
+              src="/branding/hims-shield.png"
+              alt="HIMS"
+              width={96}
+              height={99}
+              priority
+              className="mb-5 size-24 object-contain"
+            />
             <h1
               className="bg-gradient-to-br from-[oklch(0.20_0.10_262)] via-[oklch(0.32_0.13_262)] to-[oklch(0.45_0.16_262)] bg-clip-text px-2 text-6xl leading-tight tracking-tight text-transparent"
               style={{ fontFamily: "var(--font-handwritten)" }}

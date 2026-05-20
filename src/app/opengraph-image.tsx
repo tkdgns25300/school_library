@@ -1,3 +1,6 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
+
 import { ImageResponse } from "next/og";
 
 import { BRAND_GRADIENT } from "@/constants/brand";
@@ -6,7 +9,12 @@ export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 export const alt = "School Library · 더힘스쿨 수지점";
 
-export default function OpenGraphImage() {
+export default async function OpenGraphImage() {
+  const shield = await readFile(
+    join(process.cwd(), "public/branding/hims-shield.png"),
+  );
+  const shieldSrc = `data:image/png;base64,${shield.toString("base64")}`;
+
   return new ImageResponse(
     (
       <div
@@ -52,34 +60,14 @@ export default function OpenGraphImage() {
             zIndex: 1,
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              width: 128,
-              height: 128,
-              borderRadius: 32,
-              background: "rgba(255,255,255,0.14)",
-              alignItems: "center",
-              justifyContent: "center",
-              marginBottom: 40,
-            }}
-          >
-            <svg
-              width="68"
-              height="68"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="white"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="m16 6 4 14" />
-              <path d="M12 6v14" />
-              <path d="M8 8v12" />
-              <path d="M4 4v16" />
-            </svg>
-          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={shieldSrc}
+            alt=""
+            width={180}
+            height={186}
+            style={{ marginBottom: 36 }}
+          />
 
           <div
             style={{

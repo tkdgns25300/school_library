@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -116,9 +117,14 @@ function SidebarBody({
   return (
     <div className="flex h-full flex-col">
       <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-4">
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-sidebar-badge text-sm font-bold text-sidebar-primary-foreground">
-          더힘
-        </span>
+        <Image
+          src="/branding/hims-shield.png"
+          alt="HIMS"
+          width={36}
+          height={37}
+          priority
+          className="size-9 shrink-0 object-contain"
+        />
         {!collapsed ? (
           <div className="min-w-0">
             <div className="truncate text-sm font-semibold">School Library</div>
