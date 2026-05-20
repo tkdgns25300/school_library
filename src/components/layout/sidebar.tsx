@@ -118,7 +118,12 @@ function SidebarBody({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-4">
+      <Link
+        href="/"
+        onClick={onNavigate}
+        title={collapsed ? "대여 데스크" : undefined}
+        className="flex h-16 items-center gap-3 border-b border-sidebar-border px-4 transition-colors hover:bg-sidebar-accent/40"
+      >
         <Image
           src="/branding/hims-shield.png"
           alt="HIMS"
@@ -135,7 +140,7 @@ function SidebarBody({
             </div>
           </div>
         ) : null}
-      </div>
+      </Link>
 
       <nav className="flex flex-1 flex-col gap-6 overflow-hidden px-3 py-5">
         {NAV_GROUPS.map((group) => (
