@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import { Pencil, Search, Trash2, Upload, UserPlus } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -90,19 +89,18 @@ export function TeachersView({ teachers }: { teachers: Teacher[] }) {
         </div>
 
         <div className="overflow-x-auto rounded-xl border bg-card shadow-sm">
-          <Table className="min-w-[480px] table-fixed">
+          <Table className="min-w-[360px] table-fixed">
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead>이름</TableHead>
-                <TableHead className="w-48">담당 반</TableHead>
-                <TableHead className="w-24 text-right" />
+                <TableHead className="w-20 text-right" />
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={3}
+                    colSpan={2}
                     className="py-12 text-center text-muted-foreground"
                   >
                     {teachers.length === 0
@@ -118,13 +116,15 @@ export function TeachersView({ teachers }: { teachers: Teacher[] }) {
                         <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted text-xs font-semibold text-muted-foreground">
                           {teacher.name.slice(0, 1)}
                         </span>
-                        <span className="truncate font-medium">
-                          {teacher.name}
-                        </span>
+                        <div className="min-w-0">
+                          <div className="truncate font-medium">
+                            {teacher.name}
+                          </div>
+                          <div className="truncate text-xs text-muted-foreground">
+                            {teacher.class_section}
+                          </div>
+                        </div>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">{teacher.class_section}</Badge>
                     </TableCell>
                     <TableCell className="text-right">
                       <Button

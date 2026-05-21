@@ -325,7 +325,7 @@ function BooksTable({
 
   return (
     <div className="overflow-x-auto rounded-xl border bg-card shadow-sm">
-      <Table className="min-w-[880px] table-fixed">
+      <Table className="min-w-[720px] table-fixed">
         <TableHeader>
           <TableRow className="hover:bg-transparent">
             <TableHead className="w-12">
@@ -340,20 +340,19 @@ function BooksTable({
             </TableHead>
             <TableHead className="w-16">표지</TableHead>
             <TableHead className="w-28">바코드</TableHead>
-            <TableHead>제목 / 저자</TableHead>
-            <TableHead className="w-32">출판사</TableHead>
+            <TableHead>책</TableHead>
             <TableHead className="w-24">
               {LANGUAGE_LEVEL_TERM[language]}
             </TableHead>
             <TableHead className="w-24">상태</TableHead>
-            <TableHead className="w-24 text-right" />
+            <TableHead className="w-20 text-right" />
           </TableRow>
         </TableHeader>
         <TableBody>
           {books.length === 0 ? (
             <TableRow>
               <TableCell
-                colSpan={8}
+                colSpan={7}
                 className="py-12 text-center text-muted-foreground"
               >
                 {totalCount === 0
@@ -415,14 +414,13 @@ function BooksTable({
                 </TableCell>
                 <TableCell>
                   <div className="truncate font-medium">{book.title}</div>
-                  {book.author ? (
+                  {book.author || book.publisher ? (
                     <div className="truncate text-xs text-muted-foreground">
-                      {book.author}
+                      {[book.author, book.publisher]
+                        .filter(Boolean)
+                        .join(" · ")}
                     </div>
                   ) : null}
-                </TableCell>
-                <TableCell className="truncate text-sm text-muted-foreground">
-                  {book.publisher ?? "—"}
                 </TableCell>
                 <TableCell>
                   {book.level ? (
