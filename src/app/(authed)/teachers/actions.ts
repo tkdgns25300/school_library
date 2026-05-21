@@ -3,6 +3,7 @@
 import { updateTag } from "next/cache";
 import Papa from "papaparse";
 
+import type { CsvImportResult, CsvImportState } from "@/lib/csv-import";
 import { createClient } from "@/lib/supabase/server";
 import type { ClassSection } from "@/types/domain";
 
@@ -115,18 +116,6 @@ export async function removeTeacher(
   return { ok: true };
 }
 
-export type CsvImportResult = {
-  row: number;
-  name: string;
-  error?: string;
-};
-
-export type CsvImportState = {
-  error?: string;
-  successCount?: number;
-  results?: CsvImportResult[];
-};
-
 type CsvRow = {
   name?: string;
   class_section?: string;
@@ -162,11 +151,15 @@ export async function importTeachersCsv(
     const classSection = row.class_section?.trim() ?? "";
 
     if (name === "") {
-      results.push({ row: rowNumber, name: "", error: "이름 누락" });
+      results.push({ row: rowNumber, label: "", error: "이름 누락" });
       continue;
     }
     if (!isValidSection(classSection)) {
-      results.push({ row: rowNumber, name, error: "유효하지 않은 담당 반" });
+      results.push({
+        row: rowNumber,
+        label: name,
+        error: "유효하지 않은 담당 반",
+      });
       continue;
     }
 
@@ -176,14 +169,18 @@ export async function importTeachersCsv(
 
     if (error) {
       if (error.code === "23505") {
-        results.push({ row: rowNumber, name, error: "이미 존재하는 이름" });
+        results.push({
+          row: rowNumber,
+          label: name,
+          error: "이미 존재하는 이름",
+        });
       } else {
-        results.push({ row: rowNumber, name, error: "DB 오류" });
+        results.push({ row: rowNumber, label: name, error: "DB 오류" });
       }
       continue;
     }
 
-    results.push({ row: rowNumber, name });
+    results.push({ row: rowNumber, label: name });
   }
 
   updateTag("teachers");

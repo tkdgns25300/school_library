@@ -102,7 +102,7 @@ export function BookFormDialog({
             <input type="hidden" name="id" value={mode.book.id} />
           ) : null}
 
-          <div className="grid grid-cols-[1fr_auto] gap-5">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-[1fr_auto]">
             <div className="space-y-5">
               <div className="space-y-2">
                 <Label className={FIELD_LABEL_CLASS}>언어</Label>

@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import { Pencil, Search, Trash2, Upload, UserPlus } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -96,7 +95,7 @@ export function StudentsView({ students }: { students: StudentWithStats[] }) {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <div className="relative max-w-sm flex-1">
+          <div className="relative w-full sm:max-w-sm sm:flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="이름으로 검색…"
@@ -140,22 +139,20 @@ export function StudentsView({ students }: { students: StudentWithStats[] }) {
         </div>
 
         <div className="overflow-x-auto rounded-xl border bg-card shadow-sm">
-          <Table className="min-w-[640px] table-fixed">
+          <Table className="min-w-[480px] table-fixed">
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead className="w-20">학년</TableHead>
-                <TableHead className="w-32">반</TableHead>
-                <TableHead>이름</TableHead>
-                <TableHead className="w-44">한국어 도서 대여 수</TableHead>
-                <TableHead className="w-44">영어 도서 대여 수</TableHead>
-                <TableHead className="w-24 text-right" />
+                <TableHead>학생</TableHead>
+                <TableHead className="w-28">한국어 대여</TableHead>
+                <TableHead className="w-28">영어 대여</TableHead>
+                <TableHead className="w-20 text-right" />
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={6}
+                    colSpan={4}
                     className="py-12 text-center text-muted-foreground"
                   >
                     {students.length === 0
@@ -167,13 +164,10 @@ export function StudentsView({ students }: { students: StudentWithStats[] }) {
                 filtered.map((student) => (
                   <TableRow key={student.id}>
                     <TableCell>
-                      <Badge variant="secondary">{student.grade}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary">{student.class_section}</Badge>
-                    </TableCell>
-                    <TableCell className="truncate font-medium">
-                      {student.name}
+                      <div className="truncate font-medium">{student.name}</div>
+                      <div className="truncate text-xs text-muted-foreground">
+                        {student.grade}학년 · {student.class_section}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <LoanCount

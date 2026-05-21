@@ -128,7 +128,7 @@ export function LoanDetailDialog({
           ) : null}
         </div>
 
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <InfoBox label="대여일" value={loan.loaned_at.slice(0, 10)} />
           <InfoBox
             label="반납 예정"

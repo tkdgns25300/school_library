@@ -4,6 +4,7 @@ import { updateTag } from "next/cache";
 import Papa from "papaparse";
 
 import { isValidBookLevel } from "@/constants/levels";
+import type { CsvImportResult, CsvImportState } from "@/lib/csv-import";
 import { createClient } from "@/lib/supabase/server";
 import type { Language } from "@/types/domain";
 
@@ -224,18 +225,6 @@ export async function removeBook(
   return { ok: true };
 }
 
-export type CsvImportResult = {
-  row: number;
-  title: string;
-  error?: string;
-};
-
-export type CsvImportState = {
-  error?: string;
-  successCount?: number;
-  results?: CsvImportResult[];
-};
-
 type CsvRow = {
   title?: string;
   author?: string;
@@ -275,11 +264,15 @@ export async function importBooksCsv(
     const language = row.language?.trim() ?? "";
 
     if (title === "") {
-      results.push({ row: rowNumber, title: "", error: "제목 누락" });
+      results.push({ row: rowNumber, label: "", error: "제목 누락" });
       continue;
     }
     if (!isValidLanguage(language)) {
-      results.push({ row: rowNumber, title, error: "language는 ko 또는 en" });
+      results.push({
+        row: rowNumber,
+        label: title,
+        error: "language는 ko 또는 en",
+      });
       continue;
     }
 
@@ -287,7 +280,7 @@ export async function importBooksCsv(
     if (levelStr === "" || !isValidBookLevel(levelStr)) {
       results.push({
         row: rowNumber,
-        title,
+        label: title,
         error: "level은 1~13 (필수)",
       });
       continue;
@@ -297,7 +290,7 @@ export async function importBooksCsv(
     if (coverUrl === "") {
       results.push({
         row: rowNumber,
-        title,
+        label: title,
         error: "cover_image_url 누락 (필수)",
       });
       continue;
@@ -316,11 +309,11 @@ export async function importBooksCsv(
     });
 
     if (error) {
-      results.push({ row: rowNumber, title, error: "DB 오류" });
+      results.push({ row: rowNumber, label: title, error: "DB 오류" });
       continue;
     }
 
-    results.push({ row: rowNumber, title });
+    results.push({ row: rowNumber, label: title });
   }
 
   updateTag("books");

@@ -111,7 +111,7 @@ export function HistoryView({ history }: { history: HistoryRow[] }) {
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <div className="relative max-w-md flex-1">
+        <div className="relative w-full sm:max-w-md sm:flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="학생·책 제목·바코드로 검색…"

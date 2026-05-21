@@ -6,6 +6,7 @@ import Papa from "papaparse";
 import {
   isValidGradeClassSection,
 } from "@/constants/class-sections";
+import type { CsvImportResult, CsvImportState } from "@/lib/csv-import";
 import { createClient } from "@/lib/supabase/server";
 import type { ClassSection, Grade } from "@/types/domain";
 
@@ -138,18 +139,6 @@ export async function removeStudent(
   return { ok: true };
 }
 
-export type CsvImportResult = {
-  row: number;
-  name: string;
-  error?: string;
-};
-
-export type CsvImportState = {
-  error?: string;
-  successCount?: number;
-  results?: CsvImportResult[];
-};
-
 type CsvRow = {
   name?: string;
   grade?: string;
@@ -187,23 +176,27 @@ export async function importStudentsCsv(
     const classSection = row.class_section?.trim() ?? "";
 
     if (name === "") {
-      results.push({ row: rowNumber, name: "", error: "이름 누락" });
+      results.push({ row: rowNumber, label: "", error: "이름 누락" });
       continue;
     }
 
     const grade = Number.parseInt(gradeStr, 10);
     if (!isValidGrade(grade)) {
-      results.push({ row: rowNumber, name, error: "학년이 1~6이 아님" });
+      results.push({ row: rowNumber, label: name, error: "학년이 1~6이 아님" });
       continue;
     }
 
     if (!isValidSection(classSection)) {
-      results.push({ row: rowNumber, name, error: "유효하지 않은 반" });
+      results.push({ row: rowNumber, label: name, error: "유효하지 않은 반" });
       continue;
     }
 
     if (!isValidGradeClassSection(grade, classSection)) {
-      results.push({ row: rowNumber, name, error: "학년·반 조합 불일치" });
+      results.push({
+        row: rowNumber,
+        label: name,
+        error: "학년·반 조합 불일치",
+      });
       continue;
     }
 
@@ -216,7 +209,7 @@ export async function importStudentsCsv(
       .maybeSingle();
 
     if (existing) {
-      results.push({ row: rowNumber, name, error: "이미 등록된 학생" });
+      results.push({ row: rowNumber, label: name, error: "이미 등록된 학생" });
       continue;
     }
 
@@ -225,11 +218,11 @@ export async function importStudentsCsv(
       .insert({ name, grade, class_section: classSection });
 
     if (error) {
-      results.push({ row: rowNumber, name, error: "DB 오류" });
+      results.push({ row: rowNumber, label: name, error: "DB 오류" });
       continue;
     }
 
-    results.push({ row: rowNumber, name });
+    results.push({ row: rowNumber, label: name });
   }
 
   updateTag("students");
